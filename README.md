@@ -30,8 +30,19 @@ Praxia replaces that with a revenue ledger built for the front desk: fast charge
 - `0001_init.sql` — database schema (clinics, patients, entries, line items, settings) and row-level-security policies
 - `0002_invites.sql` — invite-code system for adding reception staff to a practice
 - `0003_split_payments.sql` — per-line payment method, supporting split MXN/USD payments
+- `0004_security_fixes.sql` — locks roles and invites, server-side entry saves, audit log, per-line currency, frozen exchange rate per entry
 
-> Note: the Supabase URL and key in `index.html` are placeholders. Add your own Supabase project credentials to run it.
+Run the `.sql` files in order (0001 → 0004) in Supabase Studio → SQL Editor.
+
+## Security model
+
+- `index.html` contains the project URL and the **publishable** key. That key is public by design; it grants nothing on its own.
+- All access control is in Postgres: row-level security isolates each clinic, and money records are written only through the `save_entry` RPC.
+- Users can change only their own display name. Role and clinic change only through `bootstrap_clinic` / `accept_invite`.
+- Invite codes: 16 characters, single use, expire after 48 hours, readable only by managers; 10 failed redemptions per user per hour.
+- Recepción without *monthly totals*, *analytics* or *export* only sees the last 7 days of entries.
+- Every create/edit/delete of entries and charge lines is recorded in `entry_audit` (managers: Ajustes → Datos → Historial de cambios).
+- **Required Supabase setting:** Authentication → Providers → Email → *Confirm email* must be **on**.
 
 ## Status
 
