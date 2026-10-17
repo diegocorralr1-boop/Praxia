@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Praxia · Registro</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Fuentes autoalojadas: ningún tercero recibe la IP del visitante (ver fonts/fonts.css). -->
+<link rel="stylesheet" href="fonts/fonts.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+<!-- Datos del responsable y versión vigente del Aviso/Términos: un solo lugar para la app y los documentos legales. -->
+<script src="legal-config.js"></script>
 <style>
 :root{
   --navy-950:#08182B; --navy-900:#0A1C33; --navy-800:#102844; --emerald:#12A47C; --emerald-bright:#19C28F; --emerald-deep:#0B7659;
@@ -275,6 +276,23 @@ h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.01em}
 .side-scrim{display:none;position:fixed;inset:0;background:rgba(8,24,43,.4);z-index:59}
 .side-scrim.open{display:block}
 @media(max-width:920px){.shell{grid-template-columns:1fr}.side{position:fixed;left:0;top:0;z-index:60;transform:translateX(-100%);transition:transform .25s}.side.open{transform:none}.menu-btn{display:grid}.erow{grid-template-columns:1.4fr auto}.erow .method,.erow .pst{display:none}}
+
+/* legal / consentimiento */
+.lchk{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.45;cursor:pointer}
+.lchk input{margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:var(--emerald-bright)}
+.lchk a{color:var(--emerald-bright);font-weight:600}
+.lfoot{margin-top:22px;text-align:center;font-size:11.5px;color:rgba(255,255,255,.45)}
+.lfoot a{color:rgba(255,255,255,.65)}
+.consent{display:none;position:fixed;inset:0;z-index:1100;background:rgba(8,24,43,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:20px}
+.consent.open{display:flex}
+.consent-card{width:min(520px,100%);background:var(--surface);border-radius:18px;padding:28px 30px;box-shadow:var(--shadow-lg)}
+.consent-card h3{font-size:19px;margin-bottom:8px}
+.consent-card p{font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:14px}
+.consent-card .lchk{color:var(--ink);margin-top:4px} .consent-card .lchk a{color:var(--emerald-deep)}
+.consent-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+.btn.danger{background:#fff;border:1px solid #F0D2D8;color:var(--rose)} .btn.danger:hover{background:#FDF2F4}
+.btn:disabled{opacity:.55;cursor:default;transform:none}
+a.btn{text-decoration:none}
 </style>
 </head>
 <body>
@@ -291,13 +309,15 @@ h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.01em}
       <div class="lmsg" id="login-msg"></div>
       <p class="lswap">¿Primera vez? <a id="go-signup">Crea tu consultorio</a></p>
       <p class="lswap" style="margin-top:-8px">¿Te invitaron? <a id="go-join">Únete con un código</a></p>
+      <p class="lswap" style="margin-top:-8px"><a id="go-reset">¿Olvidaste tu contraseña?</a></p>
     </div>
     <div id="v-signup" class="hidden">
       <h2>Crear consultorio</h2><p class="sub">Serás el gerente</p>
       <label>Nombre del consultorio</label><input id="su-clinic" placeholder="Consultorio Dr. ...">
       <label>Tu nombre</label><input id="su-name" placeholder="Dr. ...">
       <label>Correo</label><input id="su-email" type="email" placeholder="tucorreo@ejemplo.com">
-      <label>Contraseña</label><input id="su-pass" type="password" placeholder="mínimo 6 caracteres">
+      <label>Contraseña</label><input id="su-pass" type="password" placeholder="mínimo 10 caracteres" autocomplete="new-password">
+      <label class="lchk"><input type="checkbox" id="su-acepto"><span>He leído el <a href="privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a> y acepto los <a href="terminos.html" target="_blank" rel="noopener">Términos del servicio</a>.</span></label>
       <button class="lbtn" id="btn-signup">Crear consultorio</button>
       <div class="lmsg" id="signup-msg"></div>
       <p class="lswap">¿Ya tienes cuenta? <a id="go-login">Entrar</a></p>
@@ -306,12 +326,28 @@ h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.01em}
       <h2>Unirse con código</h2><p class="sub">Te invitó tu consultorio</p>
       <label>Tu nombre</label><input id="jo-name" placeholder="Tu nombre">
       <label>Correo</label><input id="jo-email" type="email" placeholder="tucorreo@ejemplo.com">
-      <label>Contraseña</label><input id="jo-pass" type="password" placeholder="mínimo 6 caracteres">
+      <label>Contraseña</label><input id="jo-pass" type="password" placeholder="mínimo 10 caracteres" autocomplete="new-password">
       <label>Código de invitación</label><input id="jo-code" placeholder="XXXX-XXXX-XXXX-XXXX" style="text-transform:uppercase;letter-spacing:.15em">
+      <label class="lchk"><input type="checkbox" id="jo-acepto"><span>He leído el <a href="privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a> y acepto los <a href="terminos.html" target="_blank" rel="noopener">Términos del servicio</a>.</span></label>
       <button class="lbtn" id="btn-join">Unirme</button>
       <div class="lmsg" id="join-msg"></div>
       <p class="lswap">¿Ya tienes cuenta? <a id="go-login2">Entrar</a></p>
     </div>
+    <div id="v-reset" class="hidden">
+      <h2>Restablecer contraseña</h2><p class="sub">Te enviaremos un enlace a tu correo</p>
+      <label>Correo</label><input id="rs-email" type="email" placeholder="tucorreo@ejemplo.com">
+      <button class="lbtn" id="btn-reset">Enviar enlace</button>
+      <div class="lmsg" id="reset-msg"></div>
+      <p class="lswap">¿La recordaste? <a id="go-login3">Entrar</a></p>
+    </div>
+    <div id="v-newpass" class="hidden">
+      <h2>Nueva contraseña</h2><p class="sub">Elige una contraseña de al menos 10 caracteres</p>
+      <label>Nueva contraseña</label><input id="np-pass" type="password" placeholder="mínimo 10 caracteres" autocomplete="new-password">
+      <label>Repite la contraseña</label><input id="np-pass2" type="password" placeholder="••••••••••" autocomplete="new-password">
+      <button class="lbtn" id="btn-newpass">Guardar contraseña</button>
+      <div class="lmsg" id="newpass-msg"></div>
+    </div>
+    <p class="lfoot"><a href="privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a> · <a href="terminos.html" target="_blank" rel="noopener">Términos del servicio</a></p>
   </div>
 </div>
 
@@ -363,12 +399,30 @@ h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.01em}
 
 <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="toast-msg"></span></div>
 
+<!-- Re-aceptación del Aviso/Términos cuando cambia la versión (legal-config.js → version) -->
+<div class="consent" id="consent" role="dialog" aria-modal="true" aria-labelledby="consent-title">
+  <div class="consent-card">
+    <h3 id="consent-title">Actualizamos nuestros términos</h3>
+    <p>Para seguir usando Praxia, revisa y acepta el <a href="privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a> y los <a href="terminos.html" target="_blank" rel="noopener">Términos del servicio</a> (versión <span id="consent-ver"></span>). Guardamos la fecha y la versión que aceptas.</p>
+    <label class="lchk"><input type="checkbox" id="consent-chk"><span>He leído y acepto el Aviso de privacidad y los Términos del servicio.</span></label>
+    <div class="consent-acts"><button class="btn danger" id="consent-no">Cerrar sesión</button><button class="btn solid" id="consent-ok" disabled>Aceptar y continuar</button></div>
+  </div>
+</div>
+
 <script>
 // Supabase project URL + publishable key. The key is public by design;
 // access control lives in the database (RLS + RPCs, see 0001–0004 .sql).
 const SUPABASE_URL = "https://yqsgeywhilqrsombekce.supabase.co";
 const SUPABASE_KEY = "sb_publishable_U5Li7wfZ_ttx9wYlEnqSKQ_CjvQKbVB";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Legal: datos del responsable y versión vigente del Aviso/Términos (legal-config.js).
+const LEGAL=window.PRAXIA_LEGAL||{};
+const TERMS_VERSION=LEGAL.version||"2026-10-17";
+const MIN_PASS=10;            // Supabase: Authentication → Providers → Email → Minimum password length = 10
+const IDLE_MS=30*60*1000;     // cierre de sesión por inactividad (equipos compartidos en recepción)
+// true when a Supabase error means the RPC/column doesn't exist yet (migration 0005 not applied)
+const rpcMissing=e=>!!e&&(e.code==="PGRST202"||e.code==="42883"||e.code==="42703"||e.code==="42P01"||/schema cache|does not exist/i.test(e.message||""));
 
 const DEFAULT_CATS = {
   concepto:["REV","PRIMERA VEZ","SUBSECUENTE","CV","OCT","LASER G6","LASER SLT","LASER YAG","LENTES","LENTES DE CONTACTO","ANTICIPO DE LENTES","ABONO DE CIRUGÍA","CHALAZION","FACO","TRABE","VALVULA","DIODO"],
@@ -412,16 +466,18 @@ function entryConceptos(e){const seen=[],out=[];(e.entry_items||[]).forEach(it=>
 function toast(msg,bad){const t=$("#toast");$("#toast-msg").textContent=msg;t.classList.toggle("bad",!!bad);t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600);}
 
 /* ---- AUTH ---- */
-function showLoginView(v){["login","signup","join"].forEach(x=>$("#v-"+x).classList.toggle("hidden",x!==v));}
+function showLoginView(v){["login","signup","join","reset","newpass"].forEach(x=>$("#v-"+x).classList.toggle("hidden",x!==v));}
 $("#go-join").onclick=()=>showLoginView("join");
 $("#go-login2").onclick=()=>showLoginView("login");
 $("#btn-join").onclick=async()=>{
   const m=$("#join-msg");m.className="lmsg";
   const name=$("#jo-name").value.trim(),email=$("#jo-email").value.trim(),pass=$("#jo-pass").value,code=$("#jo-code").value.trim();
-  if(!name||!email||pass.length<6||!code){m.classList.add("err");m.textContent="Llena todos los campos (contraseña 6+).";return;}
+  if(!name||!email||pass.length<MIN_PASS||!code){m.classList.add("err");m.textContent=`Llena todos los campos (contraseña de ${MIN_PASS}+ caracteres).`;return;}
+  if(!$("#jo-acepto").checked){m.classList.add("err");m.textContent="Para continuar, acepta el Aviso de privacidad y los Términos.";return;}
   const b=$("#btn-join");b.disabled=true;m.textContent="Uniéndote...";
   try{
-    const {data:su,error:e1}=await sb.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname,data:{pending_invite:code,display_name:name}}});if(e1)throw e1;
+    // terms_* in user metadata = proof of the tick at sign-up; accept_terms() records it in the profile on first login.
+    const {data:su,error:e1}=await sb.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname,data:{pending_invite:code,display_name:name,terms_version:TERMS_VERSION,terms_accepted_at:new Date().toISOString()}}});if(e1)throw e1;
     if(!su.session){m.textContent="Te enviamos un correo. Confírmalo y luego entra con tu correo y contraseña.";b.disabled=false;return;}
     await initApp();
   }catch(err){m.classList.add("err");m.textContent="Error: "+(err.message||err);b.disabled=false;}
@@ -432,10 +488,11 @@ $("#go-login").onclick=()=>showLoginView("login");
 $("#btn-signup").onclick=async()=>{
   const m=$("#signup-msg");m.className="lmsg";
   const clinic=$("#su-clinic").value.trim(),name=$("#su-name").value.trim(),email=$("#su-email").value.trim(),pass=$("#su-pass").value;
-  if(!clinic||!email||pass.length<6){m.classList.add("err");m.textContent="Llena consultorio, correo y contraseña de 6+ caracteres.";return;}
+  if(!clinic||!email||pass.length<MIN_PASS){m.classList.add("err");m.textContent=`Llena consultorio, correo y contraseña de ${MIN_PASS}+ caracteres.`;return;}
+  if(!$("#su-acepto").checked){m.classList.add("err");m.textContent="Para continuar, acepta el Aviso de privacidad y los Términos.";return;}
   const b=$("#btn-signup");b.disabled=true;m.textContent="Creando...";
   try{
-    const {data:su,error:e1}=await sb.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname,data:{pending_clinic:clinic,display_name:name||"Gerente"}}});if(e1)throw e1;
+    const {data:su,error:e1}=await sb.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname,data:{pending_clinic:clinic,display_name:name||"Gerente",terms_version:TERMS_VERSION,terms_accepted_at:new Date().toISOString()}}});if(e1)throw e1;
     if(!su.session){m.textContent="Te enviamos un correo. Confírmalo y luego entra con tu correo y contraseña.";b.disabled=false;return;}
     await initApp();
   }catch(err){m.classList.add("err");m.textContent="Error: "+(err.message||err);b.disabled=false;}
@@ -449,10 +506,75 @@ $("#btn-login").onclick=async()=>{
 };
 $("#btn-logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
 
+/* ---- PASSWORD RESET ---- */
+// The reset link signs the user in and fires PASSWORD_RECOVERY: ask for a new password instead of opening the app.
+let recovering=/type=recovery/.test(location.hash)||/type=recovery/.test(location.search);
+sb.auth.onAuthStateChange(ev=>{if(ev==="PASSWORD_RECOVERY"){recovering=true;$("#lock").style.display="flex";$("#app").style.display="none";showLoginView("newpass");}});
+$("#go-reset").onclick=()=>showLoginView("reset");
+$("#go-login3").onclick=()=>showLoginView("login");
+$("#btn-reset").onclick=async()=>{
+  const m=$("#reset-msg");m.className="lmsg";const email=$("#rs-email").value.trim();
+  if(!email){m.classList.add("err");m.textContent="Escribe tu correo.";return;}
+  const b=$("#btn-reset");b.disabled=true;m.textContent="Enviando...";
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  b.disabled=false;
+  if(error&&!/user not found/i.test(error.message)){m.classList.add("err");m.textContent="Error: "+error.message;return;}
+  // Same message whether or not the account exists.
+  m.classList.add("ok");m.textContent="Si el correo está registrado, recibirás un enlace para elegir una nueva contraseña.";
+};
+$("#btn-newpass").onclick=async()=>{
+  const m=$("#newpass-msg");m.className="lmsg";const p1=$("#np-pass").value,p2=$("#np-pass2").value;
+  if(p1.length<MIN_PASS){m.classList.add("err");m.textContent=`La contraseña debe tener al menos ${MIN_PASS} caracteres.`;return;}
+  if(p1!==p2){m.classList.add("err");m.textContent="Las contraseñas no coinciden.";return;}
+  const b=$("#btn-newpass");b.disabled=true;m.textContent="Guardando...";
+  const {error}=await sb.auth.updateUser({password:p1});
+  if(error){b.disabled=false;m.classList.add("err");m.textContent="Error: "+error.message;return;}
+  recovering=false;history.replaceState(null,"",location.pathname);
+  toast("Contraseña actualizada");await initApp();
+};
+
+/* ---- CONSENT (Aviso + Términos) ---- */
+// Resolves true when the user has accepted TERMS_VERSION (or the consent columns don't exist yet).
+async function ensureTerms(user){
+  const {data,error}=await sb.from("profiles").select("terms_version").eq("id",user.id).maybeSingle();
+  if(error){if(rpcMissing(error))console.warn("Migración 0005 no aplicada: sin registro de consentimiento.");return true;}
+  if(data&&data.terms_version===TERMS_VERSION)return true;
+  const md=user.user_metadata||{};
+  if(md.terms_version===TERMS_VERSION){await acceptTerms();return true;}   // ticked the box at sign-up
+  return await showConsent();
+}
+async function acceptTerms(){
+  const {error}=await sb.rpc("accept_terms",{p_version:TERMS_VERSION});
+  if(error){if(rpcMissing(error))return null;toast("No se pudo guardar la aceptación: "+error.message,true);return false;}
+  return true;
+}
+function showConsent(){
+  return new Promise(resolve=>{
+    const box=$("#consent"),chk=$("#consent-chk"),ok=$("#consent-ok");
+    $("#consent-ver").textContent=TERMS_VERSION;chk.checked=false;ok.disabled=true;box.classList.add("open");
+    chk.onchange=()=>ok.disabled=!chk.checked;
+    ok.onclick=async()=>{ok.disabled=true;const r=await acceptTerms();if(r===false){ok.disabled=false;return;}box.classList.remove("open");resolve(true);};
+    $("#consent-no").onclick=async()=>{box.classList.remove("open");await sb.auth.signOut();location.reload();resolve(false);};
+  });
+}
+
+/* ---- IDLE LOGOUT ---- */
+let idleT=null,idleWarnT=null;
+function startIdleTimer(){
+  if(startIdleTimer.on)return;startIdleTimer.on=true;
+  const reset=()=>{clearTimeout(idleT);clearTimeout(idleWarnT);
+    idleWarnT=setTimeout(()=>toast("Tu sesión se cerrará en 1 minuto por inactividad"),IDLE_MS-60000);
+    idleT=setTimeout(async()=>{await sb.auth.signOut();location.replace(location.pathname+"?inactivo=1");},IDLE_MS);};
+  ["mousemove","keydown","click","touchstart","scroll"].forEach(ev=>document.addEventListener(ev,reset,{passive:true}));
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)reset();});
+  reset();
+}
+
 /* ---- INIT ---- */
 async function initApp(){
   const {data:{user}}=await sb.auth.getUser();
   if(!user){$("#lock").style.display="flex";$("#app").style.display="none";return;}
+  if(recovering){$("#lock").style.display="flex";$("#app").style.display="none";showLoginView("newpass");return;}
   me.user=user;
   let {data:prof,error:pe}=await sb.from("profiles").select("role,clinic_id,display_name").eq("id",user.id).single();
   if(!pe&&prof&&!prof.clinic_id){
@@ -479,6 +601,7 @@ async function initApp(){
   me.clinicName=clinic?clinic.name:"Consultorio";
   const {data:cs}=await sb.from("clinic_settings").select("fx_rate,recepcion_caps").eq("clinic_id",me.clinicId).single();
   if(cs){me.fx=Number(cs.fx_rate)||18.5;me.caps=Object.assign({dailyTotals:true,monthlyTotals:false,analytics:false,editCategories:true,editFx:true,exportData:false,deleteEntries:true,editEntries:true},cs.recepcion_caps||{});}
+  if(!(await ensureTerms(user)))return;
   await seedCatsIfEmpty();
   await loadCats();
   // chrome
@@ -489,6 +612,7 @@ async function initApp(){
   $("#role-badge").className="role-badge "+(me.role==="manager"?"mgr":"rec");
   document.querySelector('#nav [data-view="analytics"]').style.display=can("analytics")?"flex":"none";
   setView("entries");
+  startIdleTimer();
 }
 
 async function seedCatsIfEmpty(){
@@ -660,7 +784,7 @@ function openSheet(entry){
       <div class="svc-total"><span class="stl">Total de la visita (MXN)</span><span class="stv" id="svc-total">$0</span></div></div>
     <div class="frow two" style="margin-top:14px">
       <div><label>N° Factura</label><input id="i-fact" placeholder="Opcional" value="${esc(entry?(entry.invoice_no||""):"")}"></div><div></div></div>
-    <div class="frow"><label>Notas</label><textarea id="i-notas" placeholder="Notas internas...">${esc(entry?(entry.notes||""):"")}</textarea></div>`;
+    <div class="frow"><label>Notas</label><textarea id="i-notas" placeholder="Notas administrativas · no registres diagnósticos ni datos clínicos">${esc(entry?(entry.notes||""):"")}</textarea></div>`;
   renderSvc();
   $("#svc-add").onclick=()=>{syncSvc();lines.push({conceptos:[cats.concepto[0]||""],modificador:"",monto:"",metodo:defM});renderSvc();};
   $("#scrim").classList.add("open");$("#sheet").classList.add("open");
@@ -808,10 +932,12 @@ async function openPatient(id){
   const r=crmRows.find(x=>x.id===id);if(!r)return;
   $("#pt-head").innerHTML=`<div class="pava-lg">${esc(initials(r.name))}</div><div><h3>${esc(r.name)}</h3><small>${r.last?"Última visita "+fmtShort(r.last):"Sin visitas"}</small></div>
     <div class="pt-stats"><div class="s"><b>${r.visits}</b><small>visitas</small></div><div class="s"><b>${fmtMXN(r.total)}</b><small>total</small></div></div>
+    ${can("deleteEntries")&&!/^Paciente eliminado /.test(r.name)?`<button class="btn subtle" id="pt-anon" style="margin-left:6px;font-size:12.5px;padding:8px 12px" title="Borra nombre y contacto; conserva los cobros de forma anónima">Anonimizar</button>`:""}
     <button class="svc-del" id="pt-close" style="width:34px;height:34px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>`;
   $("#pt-body").innerHTML=`<div class="loading">Cargando visitas...</div>`;
   $("#pt-scrim").classList.add("open");$("#pt-modal").classList.add("open");
   $("#pt-close").onclick=closePatient;
+  const an=$("#pt-anon");if(an)an.onclick=()=>anonymizePatient(id,r.name);
   const {data:ents}=await sb.from("entries").select("id,entry_date,status,method,card_type,fx_rate,entry_items(concepto,modificador,amount,method,currency)").eq("patient_id",id).order("entry_date",{ascending:false});
   if(!ents||!ents.length){$("#pt-body").innerHTML=`<p style="color:var(--faint)">Sin visitas.</p>`;return;}
   $("#pt-body").innerHTML=ents.map(e=>{const dt=parseDate(e.entry_date),items=e.entry_items||[];
@@ -821,6 +947,13 @@ async function openPatient(id){
 }
 function closePatient(){$("#pt-scrim").classList.remove("open");$("#pt-modal").classList.remove("open");}
 $("#pt-scrim").onclick=closePatient;
+// ARCO "cancelación" for a patient: strips identity and notes, keeps the fiscal revenue records (0005).
+async function anonymizePatient(id,name){
+  if(!confirm(`Se borrarán el nombre, teléfono y notas de "${name}". Sus cobros se conservan de forma anónima (obligación fiscal). Esta acción no se puede deshacer. ¿Continuar?`))return;
+  const {error}=await sb.rpc("anonymize_patient",{p_patient:id});
+  if(error){toast(rpcMissing(error)?"Esta función requiere aplicar la migración 0005 en Supabase.":"Error: "+error.message,true);return;}
+  toast("Paciente anonimizado");closePatient();renderCRM();
+}
 
 /* ---- SETTINGS ---- */
 const CAP_LABELS=[
@@ -835,8 +968,8 @@ const CAP_LABELS=[
 ];
 async function renderSettings(){
   let tabs;
-  if(me.role==="manager"){tabs=[["preferencias","Preferencias"],["personal","Personal"],["categorias","Categorías"],["datos","Datos"],["general","General"]];}
-  else{tabs=[];if(can("editCategories"))tabs.push(["categorias","Categorías"]);if(can("editFx")||can("exportData"))tabs.push(["datos","Datos"]);tabs.push(["general","General"]);}
+  if(me.role==="manager"){tabs=[["preferencias","Preferencias"],["personal","Personal"],["categorias","Categorías"],["datos","Datos"],["privacidad","Privacidad"],["general","General"]];}
+  else{tabs=[];if(can("editCategories"))tabs.push(["categorias","Categorías"]);if(can("editFx")||can("exportData"))tabs.push(["datos","Datos"]);tabs.push(["privacidad","Privacidad"],["general","General"]);}
   if(!tabs.find(t=>t[0]===settingsTab))settingsTab=tabs[0][0];
   $("#content").innerHTML=`<div class="set-tabs">${tabs.map(([k,l])=>`<button data-st="${k}" class="${settingsTab===k?"on":""}">${l}</button>`).join("")}</div><div class="set-panel" id="set-panel"><div class="loading">Cargando...</div></div>`;
   document.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{settingsTab=b.dataset.st;renderSettings();});
@@ -844,6 +977,7 @@ async function renderSettings(){
   else if(settingsTab==="personal")await setPersonal();
   else if(settingsTab==="categorias")await setCats();
   else if(settingsTab==="datos")setDatos();
+  else if(settingsTab==="privacidad")setPrivacidad();
   else setGeneral();
 }
 async function setPrefs(){
@@ -904,8 +1038,55 @@ function setGeneral(){
       <div class="set-row"><div class="srl"><b>Cerrar sesión</b><small>Vuelve a la pantalla de inicio.</small></div>
         <button class="btn" id="s-logout" style="background:#fff;border:1px solid #F0D2D8;color:var(--rose)">Cerrar sesión</button></div></div>
     <div class="set-block"><h3>Privacidad y datos</h3>
-      <p class="sd" style="line-height:1.6">La información se guarda en tu base de datos privada con acceso por usuario y consultorio. No se comparte con otros consultorios. Exporta un respaldo (arriba) con regularidad.</p></div>`;
+      <p class="sd" style="line-height:1.6">La información se guarda con acceso por usuario y consultorio; ningún otro consultorio puede verla. La sesión se cierra sola tras 30 minutos sin actividad. Documentos legales, descarga de tus datos y eliminación de cuenta: pestaña <b>Privacidad</b>.</p></div>`;
   $("#s-logout").onclick=async()=>{if(confirm("¿Cerrar sesión?")){await sb.auth.signOut();location.reload();}};
+}
+/* ---- PRIVACY (ARCO) ---- */
+function setPrivacidad(){
+  const mail=LEGAL.correoPrivacidad&&!/^\[/.test(LEGAL.correoPrivacidad)?LEGAL.correoPrivacidad:"";
+  const tpl=`aviso-pacientes.html?consultorio=${encodeURIComponent(me.clinicName||"")}&responsable=${encodeURIComponent(me.displayName||"")}`;
+  $("#set-panel").innerHTML=`
+    <div class="set-block"><h3>Documentos legales</h3><p class="sd">Versión vigente: ${esc(TERMS_VERSION)}.</p>
+      <div class="set-row"><div class="srl"><b>Aviso de privacidad de Praxia</b><small>Cómo tratamos los datos de las personas usuarias.</small></div><a class="btn subtle" href="privacidad.html" target="_blank" rel="noopener">Abrir</a></div>
+      <div class="set-row"><div class="srl"><b>Términos del servicio</b><small>Incluye las condiciones de tratamiento de datos por cuenta del consultorio.</small></div><a class="btn subtle" href="terminos.html" target="_blank" rel="noopener">Abrir</a></div>
+      <div class="set-row"><div class="srl"><b>Aviso de privacidad para tus pacientes</b><small>Plantilla con el nombre de tu consultorio ya puesto. Imprímela y recaba la firma de cada paciente.</small></div><a class="btn subtle" href="${esc(tpl)}" target="_blank" rel="noopener">Abrir</a></div></div>
+    <div class="set-block"><h3>Tus derechos (ARCO)</h3><p class="sd">Acceso, rectificación, cancelación y oposición. Tu nombre se cambia desde tu perfil; lo demás, aquí${mail?` o escribiendo a <a href="mailto:${esc(mail)}">${esc(mail)}</a>`:""}.</p>
+      <div class="set-row"><div class="srl"><b>Descargar mis datos</b><small>Archivo JSON con lo que Praxia guarda sobre tu cuenta.</small></div><button class="btn subtle" id="pv-export">Descargar</button></div>
+      <div class="set-row"><div class="srl"><b>Eliminar mi cuenta</b><small>Borra tu acceso y tu perfil.${me.role==="manager"?" Si eres el único gerente y el consultorio tiene datos, primero elimina el consultorio o invita a otro gerente.":""}</small></div><button class="btn danger" id="pv-delme">Eliminar</button></div></div>
+    ${me.role==="manager"?`<div class="set-block"><h3>Consultorio</h3><p class="sd">Acciones del gerente sobre todos los datos del consultorio.</p>
+      <div class="set-row"><div class="srl"><b>Exportar todo el registro</b><small>CSV con todas las entradas y pacientes.</small></div><button class="btn subtle" id="pv-csv">Exportar CSV</button></div>
+      <div class="set-row"><div class="srl"><b>Eliminar el consultorio y todos sus datos</b><small>Pacientes, entradas, categorías, invitaciones e historial. El personal conserva su cuenta pero queda fuera del consultorio. No se puede deshacer.</small></div><button class="btn danger" id="pv-delclinic">Eliminar consultorio</button></div></div>
+    <div class="set-block"><h3>Registro de privacidad</h3><p class="sd">Consentimientos, anonimizaciones y eliminaciones en este consultorio.</p><div id="pv-log"><div class="loading">Cargando...</div></div></div>`:""}`;
+  $("#pv-export").onclick=exportMyData;
+  $("#pv-delme").onclick=deleteMyAccount;
+  if(me.role==="manager"){$("#pv-csv").onclick=exportCSV;$("#pv-delclinic").onclick=deleteClinic;loadPrivacyLog();}
+}
+const needs0005=e=>rpcMissing(e)?"Esta función requiere aplicar la migración 0005 en Supabase.":null;
+async function exportMyData(){
+  const {data,error}=await sb.rpc("export_my_data");
+  if(error){toast(needs0005(error)||"Error: "+error.message,true);return;}
+  const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="mis-datos-praxia.json";a.click();URL.revokeObjectURL(u);toast("Datos descargados");
+}
+async function deleteMyAccount(){
+  if(prompt("Esta acción borra tu cuenta y no se puede deshacer. Escribe ELIMINAR para confirmar:")!=="ELIMINAR")return;
+  const {error}=await sb.rpc("delete_my_account");
+  if(error){toast(needs0005(error)||(/delete_clinic_first/.test(error.message)?"Eres el único gerente: primero elimina el consultorio o invita a otro gerente.":"Error: "+error.message),true);return;}
+  await sb.auth.signOut();location.reload();
+}
+async function deleteClinic(){
+  const typed=prompt(`Se borrarán TODOS los datos de "${me.clinicName}". Exporta el CSV antes si lo necesitas. Escribe el nombre exacto del consultorio para confirmar:`);
+  if(typed==null)return;
+  const {error}=await sb.rpc("delete_clinic",{p_confirm_name:typed});
+  if(error){toast(needs0005(error)||(/confirm_name_mismatch/.test(error.message)?"El nombre no coincide.":"Error: "+error.message),true);return;}
+  await sb.auth.signOut();location.reload();
+}
+async function loadPrivacyLog(){
+  const host=$("#pv-log");if(!host)return;
+  const {data,error}=await sb.from("privacy_log").select("action,at,actor_name,details").order("at",{ascending:false}).limit(50);
+  if(error){host.innerHTML=`<p class="sd">${rpcMissing(error)?"Disponible al aplicar la migración 0005.":esc(error.message)}</p>`;return;}
+  if(!data.length){host.innerHTML='<p class="sd">Sin eventos.</p>';return;}
+  const T={terms_accepted:"aceptó el Aviso y los Términos",patient_anonymized:"anonimizó a un paciente",account_deleted:"eliminó su cuenta",clinic_deleted:"eliminó el consultorio"};
+  host.innerHTML=data.map(l=>`<div class="set-row"><div class="srl"><b>${esc(l.actor_name||"—")} ${T[l.action]||esc(l.action)}${l.action==="terms_accepted"&&l.details&&l.details.version?" · v"+esc(l.details.version):""}</b><small>${esc(new Date(l.at).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"}))}</small></div></div>`).join("");
 }
 async function setPersonal(){
   const {data:team}=await sb.from("profiles").select("display_name,role").eq("clinic_id",me.clinicId);
@@ -936,7 +1117,12 @@ async function exportCSV(){
 }
 
 /* ---- BOOT ---- */
-(async()=>{const {data:{session}}=await sb.auth.getSession();if(session)await initApp();})();
+(async()=>{
+  if(new URLSearchParams(location.search).get("inactivo")){const m=$("#login-msg");m.className="lmsg";m.textContent="Tu sesión se cerró por inactividad. Vuelve a entrar.";history.replaceState(null,"",location.pathname);}
+  const {data:{session}}=await sb.auth.getSession();
+  if(session&&recovering){showLoginView("newpass");return;}
+  if(session)await initApp();
+})();
 </script>
 </body>
 </html>

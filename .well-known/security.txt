@@ -1,0 +1,7 @@
+# Praxia · reporte de vulnerabilidades (RFC 9116)
+# Completa el correo y el sitio; debe coincidir con correoSeguridad en legal-config.js.
+Contact: mailto:[seguridad@tudominio.mx]
+Expires: 2027-10-17T00:00:00.000Z
+Preferred-Languages: es, en
+Canonical: [https://tu-sitio.netlify.app]/.well-known/security.txt
+Policy: [https://tu-sitio.netlify.app]/docs/RESPUESTA-A-INCIDENTES.md
