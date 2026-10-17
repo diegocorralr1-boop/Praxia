@@ -1,0 +1,30 @@
+# Netlify reads this on every deploy; it overrides the build settings in the Netlify UI.
+# No build step: the app is index.html plus the static files next to it.
+[build]
+  publish = "."
+
+# Security headers for every response.
+# CSP: scripts only from this site and the pinned supabase-js on jsDelivr (SRI-checked in index.html);
+# API calls only to our Supabase project; no framing by other sites; no plugins.
+# 'unsafe-inline' is needed because the app's script and styles live inside index.html.
+# Moving the <script> to its own .js file would allow dropping it from script-src.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://yqsgeywhilqrsombekce.supabase.co wss://yqsgeywhilqrsombekce.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    Cross-Origin-Opener-Policy = "same-origin"
+
+# The migrations and docs are public on GitHub anyway, but keep search engines off them.
+[[headers]]
+  for = "/*.sql"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+[[headers]]
+  for = "/docs/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"

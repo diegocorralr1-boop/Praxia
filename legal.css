@@ -1,0 +1,40 @@
+/* Estilos compartidos por privacidad.html, terminos.html y aviso-pacientes.html */
+:root{--navy:#0A1C33;--navy-deep:#08182B;--emerald:#12A47C;--emerald-deep:#0B7659;--bg:#EEF2F5;--surface:#fff;--ink:#10243A;--muted:#62748A;--faint:#92A2B4;--line:#E2E8EE;--amber-bg:#FFF8EC;--amber-line:#F2E2C0;--amber-ink:#85631F;--display:'Archivo',sans-serif;--body:'Hanken Grotesk',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--body);color:var(--ink);background:var(--bg);font-size:15.5px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--emerald-deep)}
+.lhead{background:linear-gradient(180deg,var(--navy),var(--navy-deep));color:#fff;padding:16px max(16px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
+.brand .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(150deg,#19C28F,#0B7659);display:grid;place-items:center;font-family:var(--display);font-weight:800;color:#06281d}
+.brand b{font-family:var(--display);font-size:17px;display:block;line-height:1.1}
+.brand small{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.lhead nav{display:flex;gap:4px;flex-wrap:wrap}
+.lhead nav a{color:rgba(255,255,255,.75);text-decoration:none;font-size:13px;font-weight:600;padding:7px 11px;border-radius:8px}
+.lhead nav a:hover,.lhead nav a[aria-current]{background:rgba(255,255,255,.1);color:#fff}
+.doc{max-width:760px;margin:28px auto 60px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:clamp(22px,5vw,44px)}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--emerald-deep)}
+h1{font-family:var(--display);font-size:clamp(24px,4.5vw,32px);line-height:1.2;margin:6px 0 10px;letter-spacing:-.01em}
+h2{font-family:var(--display);font-size:18px;margin:30px 0 8px;letter-spacing:-.01em}
+h3{font-family:var(--display);font-size:15.5px;margin:18px 0 6px}
+p,ul,ol{margin-bottom:12px}
+ul,ol{padding-left:1.4em}
+li{margin-bottom:5px}
+.meta{color:var(--muted);font-size:13.5px}
+.box{background:rgba(18,164,124,.07);border:1px solid rgba(18,164,124,.25);border-radius:12px;padding:14px 16px;margin:18px 0;font-size:14.5px}
+.warn{background:var(--amber-bg);border:1px solid var(--amber-line);color:var(--amber-ink);border-radius:12px;padding:14px 16px;margin:18px 0;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0 14px}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-top:1px solid var(--line)}
+thead th{border-top:none;background:#F7F9FB;font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background:#F7F9FB;border:1px solid var(--line);border-radius:5px;padding:0 4px}
+.lfoot{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 40px}
+[data-legal]:empty::before{content:"[por completar en legal-config.js]";color:#B4452A;font-style:italic}
+.fill{border-bottom:1px dashed var(--faint);min-width:160px;display:inline-block;padding:0 4px;outline:none}
+.fill:focus{background:#FFFBEA}
+.fill:empty::before{content:attr(data-ph);color:var(--faint)}
+.sig{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:38px}
+.sig div{border-top:1px solid var(--ink);padding-top:6px;font-size:13px;color:var(--muted)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+.btn{font:inherit;font-size:14px;font-weight:600;padding:9px 16px;border-radius:10px;border:1px solid var(--line);background:#F7F9FB;color:var(--ink);cursor:pointer}
+.btn.solid{background:linear-gradient(150deg,var(--emerald),var(--emerald-deep));color:#fff;border-color:transparent}
+@media(max-width:560px){.sig{grid-template-columns:1fr}}
+@media print{body{background:#fff;font-size:12.5px}.lhead,.lfoot,.toolbar,.no-print{display:none}.doc{border:none;margin:0;padding:0;max-width:none}a{color:inherit;text-decoration:none}.fill{border-bottom:1px solid #000}.fill:empty::before{content:"________________________"}}

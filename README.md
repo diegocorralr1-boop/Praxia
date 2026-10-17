@@ -31,8 +31,20 @@ Praxia replaces that with a revenue ledger built for the front desk: fast charge
 - `0002_invites.sql` — invite-code system for adding reception staff to a practice
 - `0003_split_payments.sql` — per-line payment method, supporting split MXN/USD payments
 - `0004_security_fixes.sql` — locks roles and invites, server-side entry saves, audit log, per-line currency, frozen exchange rate per entry
+- `0005_privacy_compliance.sql` — consent record, privacy log, patient anonymization, clinic/account deletion, personal-data export (LFPDPPP)
+- `privacidad.html`, `terminos.html`, `aviso-pacientes.html` — legal pages (Spanish); `legal-config.js` holds the legal entity's details and the current terms version
+- `fonts/` — self-hosted fonts (no third-party font requests); `netlify.toml` — security headers (CSP, HSTS)
+- `docs/PLAN-LEGAL-MX.md` — the 15-point legal, privacy and security plan for Mexico; `docs/RESPUESTA-A-INCIDENTES.md` — breach response procedure
 
-Run the `.sql` files in order (0001 → 0004) in Supabase Studio → SQL Editor.
+Run the `.sql` files in order (0001 → 0005) in Supabase Studio → SQL Editor.
+
+## Legal & privacy (Mexico)
+
+Praxia stores patient names next to paid procedures, which is sensitive (health) data under the LFPDPPP. Before onboarding real clinics:
+
+1. Fill in `legal-config.js` (legal entity, address, privacy and security emails, site URL). The legal pages show missing fields in red until you do.
+2. Run `0005_privacy_compliance.sql`; the app works without it but can't record consent or run the ARCO self-service actions.
+3. Follow `docs/PLAN-LEGAL-MX.md`, which lists what is implemented and what the partners still have to do (Supabase Auth settings, backups, lawyer review).
 
 ## Security model
 
@@ -42,7 +54,10 @@ Run the `.sql` files in order (0001 → 0004) in Supabase Studio → SQL Editor.
 - Invite codes: 16 characters, single use, expire after 48 hours, readable only by managers; 10 failed redemptions per user per hour.
 - Recepción without *monthly totals*, *analytics* or *export* only sees the last 7 days of entries.
 - Every create/edit/delete of entries and charge lines is recorded in `entry_audit` (managers: Ajustes → Datos → Historial de cambios).
-- **Required Supabase setting:** Authentication → Providers → Email → *Confirm email* must be **on**.
+- Consents, patient anonymizations and account/clinic deletions are recorded in `privacy_log` (managers: Ajustes → Privacidad).
+- Sessions end after 30 minutes without activity; passwords must be at least 10 characters; password reset is available from the login screen.
+- `netlify.toml` sets a Content-Security-Policy (scripts only from the site and the SRI-pinned supabase-js, API calls only to our Supabase project, no framing), HSTS and related headers.
+- **Required Supabase settings:** Authentication → Providers → Email → *Confirm email* **on**, *Minimum password length* **10**; a custom SMTP provider (the built-in one is for testing only); Site URL and Redirect URLs set to the deployed site. Details in `docs/PLAN-LEGAL-MX.md`, point 10.
 
 ## Status
 
