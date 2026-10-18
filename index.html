@@ -293,6 +293,19 @@ h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.01em}
 .btn.danger{background:#fff;border:1px solid #F0D2D8;color:var(--rose)} .btn.danger:hover{background:#FDF2F4}
 .btn:disabled{opacity:.55;cursor:default;transform:none}
 a.btn{text-decoration:none}
+/* equipo / administración */
+.tblwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+.tbl th,.tbl td{text-align:left;padding:10px 12px;border-top:1px solid var(--line-soft);vertical-align:middle}
+.tbl thead th{background:var(--surface-2);font-size:11px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;border-top:none;white-space:nowrap}
+.tbl .acts{display:flex;gap:6px;flex-wrap:wrap}
+.tbl small{display:block;color:var(--faint);font-size:11.5px}
+.btn.mini{padding:5px 10px;font-size:12px;border-radius:8px}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.pill.ok{background:rgba(18,164,124,.12);color:var(--emerald-deep)} .pill.off{background:#FDF2F4;color:var(--rose)} .pill.warn{background:#FFF8EC;color:#85631F} .pill.info{background:rgba(62,124,196,.14);color:var(--sky)} .pill.adm{background:var(--navy-900);color:#fff}
+.adm-search{display:flex;gap:8px;margin-bottom:14px} .adm-search input{flex:1;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface);outline:none}
+.lbtn.ghost{background:rgba(255,255,255,.1);box-shadow:none;margin-top:10px}
+#lock .lmsg.left{text-align:left}
 </style>
 </head>
 <body>
@@ -347,6 +360,39 @@ a.btn{text-decoration:none}
       <button class="lbtn" id="btn-newpass">Guardar contraseña</button>
       <div class="lmsg" id="newpass-msg"></div>
     </div>
+    <div id="v-confirm" class="hidden">
+      <h2>Revisa tu correo</h2><p class="sub">Te enviamos un enlace para confirmar tu cuenta</p>
+      <label>Correo</label><input id="cf-email" type="email" placeholder="tucorreo@ejemplo.com">
+      <button class="lbtn" id="btn-resend">Reenviar correo</button>
+      <div class="lmsg" id="confirm-msg"></div>
+      <p class="lswap">Si no lo ves, revisa la carpeta de spam. El enlace vence en 24 horas.</p>
+      <p class="lswap" style="margin-top:-8px">¿Ya confirmaste? <a id="go-login4">Entrar</a></p>
+    </div>
+    <div id="v-onboard" class="hidden">
+      <h2 id="ob-title">Termina tu alta</h2><p class="sub" id="ob-sub">Tu cuenta aún no pertenece a ningún consultorio</p>
+      <div class="lmsg err left" id="ob-error"></div>
+      <div id="ob-choose">
+        <button class="lbtn" id="ob-retry">Reintentar</button>
+        <button class="lbtn" id="ob-create">Crear mi consultorio</button>
+        <button class="lbtn ghost" id="ob-code">Tengo un código de invitación</button>
+      </div>
+      <div id="ob-form-create" class="hidden">
+        <label>Nombre del consultorio</label><input id="ob-clinic" placeholder="Consultorio Dr. ...">
+        <label>Tu nombre</label><input id="ob-name" placeholder="Dr. ...">
+        <button class="lbtn" id="ob-create-go">Crear consultorio</button>
+      </div>
+      <div id="ob-form-code" class="hidden">
+        <label>Código de invitación</label><input id="ob-codein" placeholder="XXXX-XXXX-XXXX-XXXX" style="text-transform:uppercase;letter-spacing:.15em" autocomplete="off">
+        <div class="lmsg" id="ob-codeinfo"></div>
+        <button class="lbtn" id="ob-code-go">Unirme</button>
+      </div>
+      <div class="lmsg" id="ob-msg"></div>
+      <p class="lswap"><a id="ob-back" class="hidden">Volver</a> · <a id="ob-logout">Cerrar sesión</a></p>
+    </div>
+    <div id="v-blocked" class="hidden">
+      <h2 id="bl-title">Acceso deshabilitado</h2><p class="sub" id="bl-sub"></p>
+      <p class="lswap"><a id="bl-logout">Cerrar sesión</a></p>
+    </div>
     <p class="lfoot"><a href="privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a> · <a href="terminos.html" target="_blank" rel="noopener">Términos del servicio</a></p>
   </div>
 </div>
@@ -363,6 +409,7 @@ a.btn{text-decoration:none}
         <button data-view="crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0" stroke-linecap="round"/></svg> Pacientes</button>
         <button data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10M10 20V4M16 20v-6M22 20H2" stroke-linecap="round"/></svg> Analíticas</button>
         <button data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 0 0-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.3-1.3L13.6 2h-3.2L10 5.2a7 7 0 0 0-2.3 1.3l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.3 1.3l.4 3.2h3.2l.4-3.2a7 7 0 0 0 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3Z"/></svg> Ajustes</button>
+        <button data-view="admin" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3Z" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg> Administración</button>
       </nav>
       <div class="side-foot">
         <div class="who"><div class="ava" id="s-ava">G</div><div><b id="s-name">—</b><small id="s-clinic">—</small></div></div>
@@ -434,7 +481,8 @@ const DEFAULT_CATS = {
 const DOW=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
 const MONTHS=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
-let me={user:null,clinicId:null,role:null,clinicName:null,displayName:null,fx:18.5,caps:null};
+const DEFAULT_CAPS={dailyTotals:true,monthlyTotals:false,analytics:false,editCategories:true,editFx:true,exportData:false,deleteEntries:true,editEntries:true};
+let me={user:null,clinicId:null,role:null,clinicName:null,displayName:null,fx:18.5,caps:null,status:null,isAdmin:false,isOwner:false,lastState:null};
 function can(cap){return me.role==="manager"||!!(me.caps&&me.caps[cap]);}
 // Mirrors can_read_entry_date() in 0004: without these caps Recepción only sees 7 days.
 function fullHistory(){return can("monthlyTotals")||can("analytics")||can("exportData");}
@@ -466,21 +514,55 @@ function entryConceptos(e){const seen=[],out=[];(e.entry_items||[]).forEach(it=>
 function toast(msg,bad){const t=$("#toast");$("#toast-msg").textContent=msg;t.classList.toggle("bad",!!bad);t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600);}
 
 /* ---- AUTH ---- */
-function showLoginView(v){["login","signup","join","reset","newpass"].forEach(x=>$("#v-"+x).classList.toggle("hidden",x!==v));}
+function showLoginView(v){["login","signup","join","reset","newpass","confirm","onboard","blocked"].forEach(x=>$("#v-"+x).classList.toggle("hidden",x!==v));$("#lock").style.display="flex";}
+const fmtCode=c=>String(c||"").replace(/(.{4})(?=.)/g,"$1-");
+// Supabase / RPC error codes → Spanish, for the sign-up and membership flows.
+function errText(e){
+  const m=(e&&e.message)||String(e||"");
+  const T=[[/invalid_or_used_code|not_found/,"El código no es válido o ya se usó."],[/expired_code|expired/,"El código venció. Pide uno nuevo."],[/revoked/,"Esa invitación fue cancelada."],
+    [/invite_for_other_email/,"Esa invitación es para otro correo."],[/code_reserved_by_other/,"Ese código ya lo está usando otra persona."],[/clinic_not_active|clinic_suspended/,"Ese consultorio está suspendido."],
+    [/already_in_clinic/,"Tu cuenta ya pertenece a un consultorio."],[/account_disabled/,"Tu acceso fue deshabilitado."],[/bad_clinic_name/,"Escribe el nombre del consultorio (máximo 120 caracteres)."],
+    [/too_many_attempts/,"Demasiados intentos. Espera una hora."],[/last_manager/,"El consultorio necesita al menos un gerente activo."],[/cannot_change_owner/,"Solo un administrador puede cambiar al propietario del consultorio."],
+    [/cannot_remove_self|cannot_change_self|cannot_delete_self/,"No puedes hacer eso con tu propia cuenta."],[/delete_clinic_first/,"Primero elimina el consultorio (o pasa la propiedad a otro gerente)."],[/not_a_member/,"Esa persona no pertenece a un consultorio."],
+    [/no_permission/,"No tienes permiso para esto."],[/over_email_send_rate_limit|rate limit/i,"Espera un minuto antes de pedir otro correo."],[/Email not confirmed/i,"Confirma tu correo antes de entrar."],
+    [/Invalid login credentials/i,"Correo o contraseña incorrectos."],[/Password should be|weak_password/i,"La contraseña es demasiado débil."],[/bad_email/,"Ese correo no es válido."]];
+  for(const [re,t] of T)if(re.test(m))return t;
+  return m;
+}
 $("#go-join").onclick=()=>showLoginView("join");
 $("#go-login2").onclick=()=>showLoginView("login");
+// Live check of an invite code (check_invite is callable before signing in). Returns null when 0006 isn't applied.
+async function checkInvite(code){
+  if(!code||code.replace(/[^a-z0-9]/gi,"").length<16)return undefined;
+  const {data,error}=await sb.rpc("check_invite",{p_code:code});
+  if(error)return rpcMissing(error)?null:{valid:false,reason:error.message};
+  return data;
+}
+function inviteInfoText(r){
+  if(r===undefined)return "";
+  if(r===null)return "";
+  if(r.valid)return `Te unirás a ${r.clinic_name} como ${r.role==="manager"?"Gerente":"Recepción"}.`;
+  return errText({message:r.reason||"not_found"});
+}
+let joinChkT=null;
+$("#jo-code").addEventListener("input",()=>{clearTimeout(joinChkT);const m=$("#join-msg");joinChkT=setTimeout(async()=>{const r=await checkInvite($("#jo-code").value);m.className="lmsg "+(r&&r.valid?"ok":r&&r.valid===false?"err":"");m.textContent=inviteInfoText(r);},350);});
 $("#btn-join").onclick=async()=>{
   const m=$("#join-msg");m.className="lmsg";
   const name=$("#jo-name").value.trim(),email=$("#jo-email").value.trim(),pass=$("#jo-pass").value,code=$("#jo-code").value.trim();
   if(!name||!email||pass.length<MIN_PASS||!code){m.classList.add("err");m.textContent=`Llena todos los campos (contraseña de ${MIN_PASS}+ caracteres).`;return;}
   if(!$("#jo-acepto").checked){m.classList.add("err");m.textContent="Para continuar, acepta el Aviso de privacidad y los Términos.";return;}
-  const b=$("#btn-join");b.disabled=true;m.textContent="Uniéndote...";
+  const b=$("#btn-join");b.disabled=true;m.textContent="Verificando código...";
   try{
-    // terms_* in user metadata = proof of the tick at sign-up; accept_terms() records it in the profile on first login.
+    const chk=await checkInvite(code);
+    if(chk&&chk.valid===false){throw new Error(chk.reason||"not_found");}
+    if(chk&&chk.valid&&chk.email&&chk.email.toLowerCase()!==email.toLowerCase()){throw new Error("invite_for_other_email");}
+    m.textContent="Creando tu cuenta...";
+    // terms_* in user metadata = proof of the tick at sign-up; the server finishes the sign-up from pending_invite.
     const {data:su,error:e1}=await sb.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname,data:{pending_invite:code,display_name:name,terms_version:TERMS_VERSION,terms_accepted_at:new Date().toISOString()}}});if(e1)throw e1;
-    if(!su.session){m.textContent="Te enviamos un correo. Confírmalo y luego entra con tu correo y contraseña.";b.disabled=false;return;}
+    if(su.user&&Array.isArray(su.user.identities)&&su.user.identities.length===0){m.classList.add("err");m.textContent="Este correo ya tiene una cuenta. Entra con tu contraseña o restablécela.";b.disabled=false;return;}
+    if(!su.session){b.disabled=false;showConfirm(email,"Te enviamos un correo para confirmar tu cuenta.");return;}
     await initApp();
-  }catch(err){m.classList.add("err");m.textContent="Error: "+(err.message||err);b.disabled=false;}
+  }catch(err){m.classList.add("err");m.textContent=errText(err);b.disabled=false;}
 };
 $("#go-signup").onclick=()=>showLoginView("signup");
 $("#go-login").onclick=()=>showLoginView("login");
@@ -492,17 +574,19 @@ $("#btn-signup").onclick=async()=>{
   if(!$("#su-acepto").checked){m.classList.add("err");m.textContent="Para continuar, acepta el Aviso de privacidad y los Términos.";return;}
   const b=$("#btn-signup");b.disabled=true;m.textContent="Creando...";
   try{
+    // The server creates the clinic from pending_clinic when the email is confirmed (0006).
     const {data:su,error:e1}=await sb.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname,data:{pending_clinic:clinic,display_name:name||"Gerente",terms_version:TERMS_VERSION,terms_accepted_at:new Date().toISOString()}}});if(e1)throw e1;
-    if(!su.session){m.textContent="Te enviamos un correo. Confírmalo y luego entra con tu correo y contraseña.";b.disabled=false;return;}
+    if(su.user&&Array.isArray(su.user.identities)&&su.user.identities.length===0){m.classList.add("err");m.textContent="Este correo ya tiene una cuenta. Entra con tu contraseña o restablécela.";b.disabled=false;return;}
+    if(!su.session){b.disabled=false;showConfirm(email,"Te enviamos un correo para confirmar tu cuenta.");return;}
     await initApp();
-  }catch(err){m.classList.add("err");m.textContent="Error: "+(err.message||err);b.disabled=false;}
+  }catch(err){m.classList.add("err");m.textContent=errText(err);b.disabled=false;}
 };
 $("#btn-login").onclick=async()=>{
   const m=$("#login-msg");m.className="lmsg";
   const email=$("#li-email").value.trim(),pass=$("#li-pass").value;
   const b=$("#btn-login");b.disabled=true;m.textContent="Entrando...";
   try{const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)throw error;await initApp();}
-  catch(err){m.classList.add("err");m.textContent="Error: "+(err.message||err);b.disabled=false;}
+  catch(err){m.classList.add("err");m.textContent=errText(err);b.disabled=false;if(/Email not confirmed/i.test(err.message||""))showConfirm(email,"Tu correo aún no está confirmado.");}
 };
 $("#btn-logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
 
@@ -533,12 +617,85 @@ $("#btn-newpass").onclick=async()=>{
   toast("Contraseña actualizada");await initApp();
 };
 
+/* ---- ACCOUNT STATE & ONBOARDING (0006) ---- */
+async function accountState(){
+  const {data,error}=await sb.rpc("my_account_state");
+  if(error){if(rpcMissing(error))return null;throw error;}
+  return data;
+}
+// Before 0006 is applied: best effort from the tables (the self-read policy of 0006 is what makes this reliable).
+async function legacyState(user){
+  const md=user.user_metadata||{};
+  // Only columns that exist since 0001; terms_version (0005) is read separately by ensureTerms().
+  const {data:p,error}=await sb.from("profiles").select("role,clinic_id,display_name").eq("id",user.id).maybeSingle();
+  if(error)throw error;
+  if(!p||!p.clinic_id)return {status:"needs_clinic",legacy:true,display_name:p&&p.display_name,pending:{clinic_name:md.pending_clinic||null,invite:md.pending_invite?true:null}};
+  const [{data:c},{data:s}]=await Promise.all([sb.from("clinics").select("name").eq("id",p.clinic_id).maybeSingle(),sb.from("clinic_settings").select("fx_rate,recepcion_caps").eq("clinic_id",p.clinic_id).maybeSingle()]);
+  return {status:"active",legacy:true,role:p.role,display_name:p.display_name,terms_version:undefined,clinic:{id:p.clinic_id,name:c?c.name:"Consultorio"},fx_rate:s&&s.fx_rate,caps:s&&s.recepcion_caps,is_admin:false};
+}
+// Finishes a pending sign-up: server-side when 0006 exists, otherwise directly with the RPCs from 0001/0002.
+async function retryOnboarding(st,user){
+  if(!st.legacy){const {data,error}=await sb.rpc("finish_onboarding");if(error)throw error;return data;}
+  const md=user.user_metadata||{};
+  if(md.pending_clinic){const {error}=await sb.rpc("bootstrap_clinic",{p_clinic_name:md.pending_clinic,p_display_name:md.display_name||"Gerente"});if(error)throw error;return "active";}
+  if(md.pending_invite){const {data,error}=await sb.rpc("accept_invite",{p_code:md.pending_invite});if(error)throw error;if(!data)throw new Error("invalid_or_used_code");return "active";}
+  return "needs_clinic";
+}
+let pendingEmail="",resendT=null;
+function showConfirm(email,msg){
+  pendingEmail=email||pendingEmail;$("#cf-email").value=pendingEmail;
+  const m=$("#confirm-msg");m.className="lmsg"+(msg?" ok":"");m.textContent=msg||"";
+  showLoginView("confirm");
+}
+$("#go-login4").onclick=()=>location.reload();
+$("#btn-resend").onclick=async()=>{
+  const m=$("#confirm-msg"),b=$("#btn-resend"),email=$("#cf-email").value.trim();m.className="lmsg";
+  if(!email){m.classList.add("err");m.textContent="Escribe tu correo.";return;}
+  b.disabled=true;m.textContent="Enviando...";
+  const {error}=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:location.origin+location.pathname}});
+  if(error){b.disabled=false;m.classList.add("err");m.textContent=errText(error);return;}
+  m.classList.add("ok");m.textContent="Correo reenviado. Revisa tu bandeja y la carpeta de spam.";
+  let s=60;b.textContent=`Reenviar (${s})`;clearInterval(resendT);resendT=setInterval(()=>{s--;if(s<=0){clearInterval(resendT);b.disabled=false;b.textContent="Reenviar correo";}else b.textContent=`Reenviar (${s})`;},1000);
+};
+function showOnboarding(st,user){
+  me.lastState=st;
+  const pend=st.pending&&(st.pending.clinic_name||st.pending.invite);
+  $("#ob-title").textContent=pend?"Terminando tu alta":"Termina tu alta";
+  $("#ob-sub").textContent=st.pending&&st.pending.clinic_name?`Consultorio pendiente: ${st.pending.clinic_name}`:st.pending&&st.pending.invite?"Tienes una invitación pendiente":"Tu cuenta aún no pertenece a ningún consultorio";
+  $("#ob-error").textContent=st.onboarding_error?"No se pudo completar: "+errText({message:st.onboarding_error}):"";
+  $("#ob-retry").classList.toggle("hidden",!pend);
+  $("#ob-choose").classList.remove("hidden");$("#ob-form-create").classList.add("hidden");$("#ob-form-code").classList.add("hidden");$("#ob-back").classList.add("hidden");
+  $("#ob-msg").className="lmsg";$("#ob-msg").textContent="";
+  showLoginView("onboard");
+  const back=()=>{$("#ob-choose").classList.remove("hidden");$("#ob-form-create").classList.add("hidden");$("#ob-form-code").classList.add("hidden");$("#ob-back").classList.add("hidden");};
+  $("#ob-back").onclick=back;
+  $("#ob-create").onclick=()=>{$("#ob-choose").classList.add("hidden");$("#ob-form-create").classList.remove("hidden");$("#ob-back").classList.remove("hidden");$("#ob-name").value=st.display_name||"";setTimeout(()=>$("#ob-clinic").focus(),50);};
+  $("#ob-code").onclick=()=>{$("#ob-choose").classList.add("hidden");$("#ob-form-code").classList.remove("hidden");$("#ob-back").classList.remove("hidden");setTimeout(()=>$("#ob-codein").focus(),50);};
+  const run=async(btn,fn)=>{const m=$("#ob-msg");m.className="lmsg";m.textContent="Un momento...";btn.disabled=true;
+    try{await fn();await initApp();}catch(err){m.classList.add("err");m.textContent=errText(err);}finally{btn.disabled=false;}};
+  $("#ob-retry").onclick=()=>run($("#ob-retry"),async()=>{const r=await retryOnboarding(st,user);if(r!=="active")throw new Error((await accountState()||{}).onboarding_error||"No se pudo completar el alta.");});
+  $("#ob-create-go").onclick=()=>run($("#ob-create-go"),async()=>{const name=$("#ob-clinic").value.trim();if(!name)throw new Error("bad_clinic_name");const {error}=await sb.rpc("bootstrap_clinic",{p_clinic_name:name,p_display_name:$("#ob-name").value.trim()||null});if(error)throw error;});
+  $("#ob-code-go").onclick=()=>run($("#ob-code-go"),async()=>{const code=$("#ob-codein").value.trim();if(!code)throw new Error("not_found");const {data,error}=await sb.rpc("accept_invite",{p_code:code});if(error)throw error;if(!data)throw new Error("invalid_or_used_code");});
+  let t=null;$("#ob-codein").oninput=()=>{clearTimeout(t);t=setTimeout(async()=>{const r=await checkInvite($("#ob-codein").value);const i=$("#ob-codeinfo");i.className="lmsg "+(r&&r.valid?"ok":r&&r.valid===false?"err":"");i.textContent=inviteInfoText(r);},350);};
+  $("#ob-logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
+}
+function showBlocked(st){
+  const susp=st.status==="clinic_suspended";
+  $("#bl-title").textContent=susp?"Consultorio suspendido":"Acceso deshabilitado";
+  $("#bl-sub").textContent=susp?`${st.clinic?st.clinic.name:"Tu consultorio"} está suspendido. Contacta a Praxia.`:"Tu gerente deshabilitó tu acceso. Habla con tu consultorio si crees que es un error.";
+  $("#bl-logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
+  showLoginView("blocked");
+}
+
 /* ---- CONSENT (Aviso + Términos) ---- */
 // Resolves true when the user has accepted TERMS_VERSION (or the consent columns don't exist yet).
-async function ensureTerms(user){
-  const {data,error}=await sb.from("profiles").select("terms_version").eq("id",user.id).maybeSingle();
-  if(error){if(rpcMissing(error))console.warn("Migración 0005 no aplicada: sin registro de consentimiento.");return true;}
-  if(data&&data.terms_version===TERMS_VERSION)return true;
+async function ensureTerms(user,tv){
+  if(tv===undefined){
+    const {data,error}=await sb.from("profiles").select("terms_version").eq("id",user.id).maybeSingle();
+    if(error){if(rpcMissing(error))console.warn("Migración 0005 no aplicada: sin registro de consentimiento.");return true;}
+    tv=data&&data.terms_version;
+  }
+  if(tv===TERMS_VERSION)return true;
   const md=user.user_metadata||{};
   if(md.terms_version===TERMS_VERSION){await acceptTerms();return true;}   // ticked the box at sign-up
   return await showConsent();
@@ -576,43 +733,42 @@ async function initApp(){
   if(!user){$("#lock").style.display="flex";$("#app").style.display="none";return;}
   if(recovering){$("#lock").style.display="flex";$("#app").style.display="none";showLoginView("newpass");return;}
   me.user=user;
-  let {data:prof,error:pe}=await sb.from("profiles").select("role,clinic_id,display_name").eq("id",user.id).single();
-  if(!pe&&prof&&!prof.clinic_id){
-    // First login after email confirmation: finish the clinic creation / invite saved at sign-up.
-    const md=user.user_metadata||{};let err=null;
-    if(md.pending_clinic){({error:err}=await sb.rpc("bootstrap_clinic",{p_clinic_name:md.pending_clinic,p_display_name:md.display_name||"Gerente"}));}
-    else if(md.pending_invite){
-      const {data:cid,error:ie}=await sb.rpc("accept_invite",{p_code:md.pending_invite});
-      err=ie||(cid?null:new Error("Código inválido, vencido o ya usado. Pide uno nuevo a tu gerente."));
-      if(!err&&md.display_name)await sb.from("profiles").update({display_name:md.display_name}).eq("id",user.id);
-    }
-    if(md.pending_clinic||md.pending_invite){
-      await sb.auth.updateUser({data:{pending_clinic:null,pending_invite:null}});
-      if(err){$("#login-msg").className="lmsg err";$("#login-msg").textContent="Error: "+(/too_many/.test(err.message)?"Demasiados intentos. Espera una hora.":err.message);$("#btn-login").disabled=false;return;}
-      ({data:prof,error:pe}=await sb.from("profiles").select("role,clinic_id,display_name").eq("id",user.id).single());
-    }
+  // One call tells the app what to show (0006). The server already finished the
+  // sign-up when the email was confirmed; the app only retries or shows the state.
+  let st;
+  try{st=(await accountState())||(await legacyState(user));}
+  catch(err){const m=$("#login-msg");m.className="lmsg err";m.textContent="No se pudo cargar tu cuenta: "+errText(err);$("#btn-login").disabled=false;showLoginView("login");return;}
+  if(st.status==="pending_email"){showConfirm(user.email,"");return;}
+  if(st.status==="needs_clinic"&&st.pending&&(st.pending.clinic_name||st.pending.invite)&&!st.onboarding_error){
+    try{if((await retryOnboarding(st,user))==="active")st=(await accountState())||(await legacyState(user));}
+    catch(err){st.onboarding_error=err.message||String(err);}
   }
-  if(pe||!prof||!prof.clinic_id){
-    $("#login-msg").className="lmsg err";$("#login-msg").textContent="Tu cuenta aún no tiene consultorio. Pide un código de invitación a tu gerente.";
-    $("#btn-login").disabled=false;$("#btn-signup").disabled=false;return;
-  }
-  me.role=prof.role;me.displayName=prof.display_name||"Usuario";me.clinicId=prof.clinic_id;
-  const {data:clinic}=await sb.from("clinics").select("name").eq("id",me.clinicId).single();
-  me.clinicName=clinic?clinic.name:"Consultorio";
-  const {data:cs}=await sb.from("clinic_settings").select("fx_rate,recepcion_caps").eq("clinic_id",me.clinicId).single();
-  if(cs){me.fx=Number(cs.fx_rate)||18.5;me.caps=Object.assign({dailyTotals:true,monthlyTotals:false,analytics:false,editCategories:true,editFx:true,exportData:false,deleteEntries:true,editEntries:true},cs.recepcion_caps||{});}
-  if(!(await ensureTerms(user)))return;
+  if(st.status==="disabled"||st.status==="clinic_suspended"){showBlocked(st);return;}
+  if(st.status!=="active"&&!st.is_admin){showOnboarding(st,user);return;}
+  me.lastState=st;me.isAdmin=!!st.is_admin;me.displayName=st.display_name||(st.is_admin?"Administración":"Usuario");
+  if(!(await ensureTerms(user,st.terms_version)))return;
+  if(st.status!=="active"){startAdminOnly(st);return;}
+  me.status="active";me.role=st.role;me.clinicId=st.clinic.id;me.clinicName=st.clinic.name;me.isOwner=!!st.clinic.is_owner;
+  me.fx=Number(st.fx_rate)||18.5;me.caps=Object.assign({},DEFAULT_CAPS,st.caps||{});
   await seedCatsIfEmpty();
   await loadCats();
-  // chrome
+  showApp();
+  setView("entries");
+  startIdleTimer();
+}
+function showApp(){
   $("#lock").style.display="none";$("#app").style.display="block";
   $("#s-name").textContent=me.displayName;$("#s-clinic").textContent=me.clinicName;
   $("#s-ava").textContent=(me.displayName[0]||"G").toUpperCase();
-  $("#role-badge").textContent=me.role==="manager"?"Gerente":"Recepción";
-  $("#role-badge").className="role-badge "+(me.role==="manager"?"mgr":"rec");
-  document.querySelector('#nav [data-view="analytics"]').style.display=can("analytics")?"flex":"none";
-  setView("entries");
-  startIdleTimer();
+  $("#role-badge").textContent=me.status==="admin_only"?"Admin":me.role==="manager"?"Gerente":"Recepción";
+  $("#role-badge").className="role-badge "+(me.role==="manager"||me.status==="admin_only"?"mgr":"rec");
+  document.querySelectorAll("#nav button").forEach(b=>{const v=b.dataset.view;
+    b.style.display=v==="admin"?(me.isAdmin?"flex":"none"):v==="analytics"?(me.status==="active"&&can("analytics")?"flex":"none"):(me.status==="active"?"flex":"none");});
+}
+// Platform admin without a clinic of their own: only the admin panel is available.
+function startAdminOnly(st){
+  me.status="admin_only";me.role=null;me.clinicId=null;me.clinicName="Praxia";me.caps={};
+  showApp();setView("admin");startIdleTimer();
 }
 
 async function seedCatsIfEmpty(){
@@ -629,9 +785,11 @@ async function loadCats(){
 }
 
 /* ---- ROUTER ---- */
-const TITLES={entries:["Panel","Entradas"],calendar:["Vista","Calendario"],crm:["Base de datos","Pacientes"],analytics:["Reportes","Analíticas"],settings:["Sistema","Ajustes"]};
+const TITLES={entries:["Panel","Entradas"],calendar:["Vista","Calendario"],crm:["Base de datos","Pacientes"],analytics:["Reportes","Analíticas"],settings:["Sistema","Ajustes"],admin:["Plataforma","Administración"]};
 function setView(v){
   if(v==="analytics"&&!can("analytics"))v="entries";
+  if(v==="admin"&&!me.isAdmin)v="entries";
+  if(me.status==="admin_only")v="admin";
   curView=v;
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
   $("#crumb").textContent=TITLES[v][0];$("#page-title").textContent=TITLES[v][1];
@@ -641,6 +799,7 @@ function setView(v){
   else if(v==="analytics")renderAnalytics();
   else if(v==="crm")renderCRM();
   else if(v==="settings")renderSettings();
+  else if(v==="admin")renderAdmin();
   else $("#content").innerHTML=`<div class="placeholder"><b>Próximamente</b>Esta sección se conecta en el siguiente paso.</div>`;
 }
 $("#nav").querySelectorAll("button").forEach(b=>b.onclick=()=>{setView(b.dataset.view);closeSide();});
@@ -1088,7 +1247,112 @@ async function loadPrivacyLog(){
   const T={terms_accepted:"aceptó el Aviso y los Términos",patient_anonymized:"anonimizó a un paciente",account_deleted:"eliminó su cuenta",clinic_deleted:"eliminó el consultorio"};
   host.innerHTML=data.map(l=>`<div class="set-row"><div class="srl"><b>${esc(l.actor_name||"—")} ${T[l.action]||esc(l.action)}${l.action==="terms_accepted"&&l.details&&l.details.version?" · v"+esc(l.details.version):""}</b><small>${esc(new Date(l.at).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"}))}</small></div></div>`).join("");
 }
+/* ---- TEAM (Personal) — list_members / remove / role / status / invites (0006) ---- */
+const rolePill=r=>`<span class="pill ${r==="manager"?"ok":"info"}">${r==="manager"?"Gerente":"Recepción"}</span>`;
+const statusPill=s=>({active:'<span class="pill ok">Activo</span>',disabled:'<span class="pill off">Deshabilitado</span>',needs_clinic:'<span class="pill warn">Sin consultorio</span>',pending_email:'<span class="pill warn">Sin confirmar</span>',no_profile:'<span class="pill warn">Sin perfil</span>'})[s]||`<span class="pill">${esc(s)}</span>`;
+const fmtWhen=iso=>iso?new Date(iso).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"}):"—";
+async function memberAction(fn,args,okMsg,after){
+  const {error}=await sb.rpc(fn,args);
+  if(error){toast(rpcMissing(error)?"Requiere aplicar la migración 0006 en Supabase.":errText(error),true);return;}
+  toast(okMsg);if(after)after();
+}
 async function setPersonal(){
+  const {data,error}=await sb.rpc("list_members");
+  if(error){if(rpcMissing(error))return setPersonalLegacy();$("#set-panel").innerHTML=`<p class="sd">${esc(errText(error))}</p>`;return;}
+  const mem=(data&&data.members)||[],inv=(data&&data.invites)||[];
+  $("#set-panel").innerHTML=`
+    <div class="set-block"><h3>Equipo</h3><p class="sd">Quién tiene acceso a este consultorio. El propietario solo lo puede cambiar un administrador de Praxia.</p>
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>Persona</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+      ${mem.map(u=>`<tr><td><b>${esc(u.display_name||"Usuario")}</b>${u.is_me?' <span class="pill">tú</span>':""}${u.is_owner?' <span class="pill adm">propietario</span>':""}<small>desde ${esc(fmtWhen(u.joined_at))}</small></td>
+        <td>${rolePill(u.role)}</td><td>${statusPill(u.status)}</td>
+        <td><div class="acts">${u.is_me||u.is_owner?'<span class="sd">—</span>':`
+          <button class="btn subtle mini" data-role="${u.id}" data-to="${u.role==="manager"?"recepcion":"manager"}">${u.role==="manager"?"Hacer recepción":"Hacer gerente"}</button>
+          <button class="btn subtle mini" data-status="${u.id}" data-to="${u.status==="disabled"?"active":"disabled"}">${u.status==="disabled"?"Activar":"Deshabilitar"}</button>
+          <button class="btn danger mini" data-remove="${u.id}" data-name="${esc(u.display_name||"esta persona")}">Quitar</button>`}</div></td></tr>`).join("")}
+      </tbody></table></div></div>
+    <div class="set-block"><h3>Invitaciones</h3><p class="sd">Genera un código y compártelo. La persona lo usa en «Únete con un código». Vence en 7 días; si escribes su correo, solo ese correo podrá usarlo.</p>
+      <div class="add-cat" style="flex-wrap:wrap"><select id="inv-role" class="mini-input" style="width:auto"><option value="recepcion">Recepción</option><option value="manager">Gerente</option></select><input id="inv-email" type="email" placeholder="Correo (opcional)"><button class="btn solid" id="gen-code">Generar código</button></div>
+      <div id="code-out" style="margin-top:14px"></div>
+      ${inv.length?`<div class="tblwrap" style="margin-top:14px"><table class="tbl"><thead><tr><th>Código</th><th>Rol</th><th>Para</th><th>Estado</th><th></th></tr></thead><tbody>
+        ${inv.map(i=>`<tr><td style="font-family:var(--display);letter-spacing:.1em">${esc(fmtCode(i.code))}</td><td>${rolePill(i.role)}</td><td>${esc(i.email||"cualquiera")}</td>
+          <td>${i.reserved?'<span class="pill info">en uso (esperando confirmación)</span>':i.expired?'<span class="pill off">vencido</span>':`<span class="pill ok">vence ${esc(fmtWhen(i.expires_at))}</span>`}</td>
+          <td><button class="btn danger mini" data-revoke="${esc(i.code)}">Revocar</button></td></tr>`).join("")}</tbody></table></div>`:'<p class="sd" style="margin-top:12px">Sin invitaciones pendientes.</p>'}</div>`;
+  const P=$("#set-panel");
+  P.querySelectorAll("[data-role]").forEach(b=>b.onclick=()=>memberAction("set_member_role",{p_uid:b.dataset.role,p_role:b.dataset.to},"Rol actualizado",setPersonal));
+  P.querySelectorAll("[data-status]").forEach(b=>b.onclick=()=>memberAction("set_member_status",{p_uid:b.dataset.status,p_status:b.dataset.to},b.dataset.to==="disabled"?"Acceso deshabilitado":"Acceso activado",setPersonal));
+  P.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{if(confirm(`¿Quitar a ${b.dataset.name} del consultorio? Conserva su cuenta pero ya no verá nada de aquí.`))memberAction("remove_member",{p_uid:b.dataset.remove},"Persona quitada del consultorio",setPersonal);});
+  P.querySelectorAll("[data-revoke]").forEach(b=>b.onclick=()=>memberAction("revoke_invite",{p_code:b.dataset.revoke},"Invitación revocada",setPersonal));
+  $("#gen-code").onclick=async()=>{
+    const role=$("#inv-role").value,email=$("#inv-email").value.trim()||null;
+    const {data:code,error}=await sb.rpc("create_invite",{p_role:role,p_email:email});
+    if(error){toast(errText(error),true);return;}
+    await setPersonal();
+    $("#code-out").innerHTML=`<div class="warn" style="background:rgba(18,164,124,.08);border-color:rgba(18,164,124,.3);color:var(--emerald-deep)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg><div>Código: <b style="font-family:var(--display);letter-spacing:.15em;font-size:16px">${esc(fmtCode(code))}</b> — para ${role==="manager"?"Gerente":"Recepción"}${email?` (solo ${esc(email)})`:""}. Válido una vez, vence en 7 días.</div></div>`;
+  };
+}
+
+/* ---- PLATFORM ADMIN ---- */
+let adminTab="clinics",adminSearch="";
+async function renderAdmin(){
+  const tabs=[["clinics","Consultorios"],["users","Usuarios"],["new","Nuevo consultorio"]];
+  const banner=me.status==="admin_only"?`<div class="warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 16v-4M12 8h.01M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z" stroke-linecap="round"/></svg><div>Entraste como administrador de Praxia. No perteneces a ningún consultorio: <a id="adm-own" style="cursor:pointer;font-weight:700">crear el mío o unirme con un código</a>.</div></div>`:"";
+  $("#content").innerHTML=`${banner}<div class="set-tabs">${tabs.map(([k,l])=>`<button data-at="${k}" class="${adminTab===k?"on":""}">${l}</button>`).join("")}</div><div id="adm-panel"><div class="loading">Cargando...</div></div>`;
+  document.querySelectorAll("[data-at]").forEach(b=>b.onclick=()=>{adminTab=b.dataset.at;renderAdmin();});
+  const own=$("#adm-own");if(own)own.onclick=()=>showOnboarding(Object.assign({},me.lastState,{pending:{}}),me.user);
+  if(adminTab==="clinics")await adminClinics();else if(adminTab==="users")await adminUsers();else adminNewClinic();
+}
+function showCodeBox(host,code,role,clinicName){
+  host.innerHTML=`<div class="warn" style="background:rgba(18,164,124,.08);border-color:rgba(18,164,124,.3);color:var(--emerald-deep)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg><div>Código de <b>${role==="manager"?"Gerente":"Recepción"}</b> para <b>${esc(clinicName)}</b>: <b style="font-family:var(--display);letter-spacing:.15em;font-size:16px">${esc(fmtCode(code))}</b> — la persona lo usa en «Únete con un código». Válido una vez, vence en 7 días.</div></div>`;
+}
+async function adminClinics(){
+  const host=$("#adm-panel");const {data,error}=await sb.rpc("admin_list_clinics");
+  if(error||data===null){host.innerHTML=`<p class="sd">${esc(error?(rpcMissing(error)?"Requiere aplicar la migración 0006 en Supabase.":errText(error)):"Sin permiso.")}</p>`;return;}
+  host.innerHTML=`<div id="adm-code" style="margin-bottom:14px"></div><div class="tblwrap"><table class="tbl"><thead><tr><th>Consultorio</th><th>Estado</th><th>Miembros</th><th>Entradas</th><th>Acciones</th></tr></thead><tbody>
+    ${data.map(c=>`<tr><td><b>${esc(c.name)}</b><small>${esc(c.owner?"Propietario: "+c.owner:"Sin propietario")} · creado ${esc(fmtWhen(c.created_at))}</small></td>
+      <td>${c.status==="active"?'<span class="pill ok">Activo</span>':'<span class="pill off">Suspendido</span>'}</td>
+      <td>${c.members}${c.open_invites?`<small>${c.open_invites} invitación(es) abierta(s)</small>`:""}</td><td>${c.entries}<small>${c.last_entry?"última "+esc(c.last_entry):"—"}</small></td>
+      <td><div class="acts"><button class="btn subtle mini" data-inv="${c.id}" data-role="manager" data-name="${esc(c.name)}">Código gerente</button><button class="btn subtle mini" data-inv="${c.id}" data-role="recepcion" data-name="${esc(c.name)}">Código recepción</button>
+        <button class="btn subtle mini" data-cstatus="${c.id}" data-to="${c.status==="active"?"suspended":"active"}">${c.status==="active"?"Suspender":"Activar"}</button>
+        <button class="btn danger mini" data-cdel="${c.id}" data-name="${esc(c.name)}">Eliminar</button></div></td></tr>`).join("")||'<tr><td colspan="5" class="sd">Sin consultorios.</td></tr>'}
+  </tbody></table></div>`;
+  host.querySelectorAll("[data-inv]").forEach(b=>b.onclick=async()=>{const {data:code,error}=await sb.rpc("admin_create_invite",{p_clinic:b.dataset.inv,p_role:b.dataset.role});if(error){toast(errText(error),true);return;}showCodeBox($("#adm-code"),code,b.dataset.role,b.dataset.name);});
+  host.querySelectorAll("[data-cstatus]").forEach(b=>b.onclick=()=>memberAction("admin_set_clinic_status",{p_clinic:b.dataset.cstatus,p_status:b.dataset.to},b.dataset.to==="suspended"?"Consultorio suspendido":"Consultorio activado",adminClinics));
+  host.querySelectorAll("[data-cdel]").forEach(b=>b.onclick=()=>{if(prompt(`Se borrarán TODOS los datos de "${b.dataset.name}" (pacientes, entradas, historial). Escribe ELIMINAR para confirmar:`)==="ELIMINAR")memberAction("admin_delete_clinic",{p_clinic:b.dataset.cdel},"Consultorio eliminado",adminClinics);});
+}
+async function adminUsers(){
+  const host=$("#adm-panel");
+  host.innerHTML=`<div class="adm-search"><input id="adm-q" placeholder="Buscar por correo, nombre o consultorio" value="${esc(adminSearch)}"><button class="btn solid" id="adm-go">Buscar</button></div><div id="adm-users"><div class="loading">Cargando...</div></div>`;
+  const load=async()=>{
+    const {data,error}=await sb.rpc("admin_list_users",{p_search:adminSearch||null});const u=$("#adm-users");
+    if(error||data===null){u.innerHTML=`<p class="sd">${esc(error?(rpcMissing(error)?"Requiere aplicar la migración 0006 en Supabase.":errText(error)):"Sin permiso.")}</p>`;return;}
+    u.innerHTML=`<div class="tblwrap"><table class="tbl"><thead><tr><th>Usuario</th><th>Consultorio</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+      ${data.map(x=>`<tr><td><b>${esc(x.display_name||"—")}</b>${x.is_admin?' <span class="pill adm">admin</span>':""}${x.id===me.user.id?' <span class="pill">tú</span>':""}<small>${esc(x.email)} · alta ${esc(fmtWhen(x.created_at))}${x.email_confirmed?"":" · <b>sin confirmar</b>"}${x.last_sign_in_at?" · último acceso "+esc(fmtWhen(x.last_sign_in_at)):""}</small>${x.onboarding_error?`<small style="color:var(--rose)">Alta pendiente: ${esc(errText({message:x.onboarding_error}))}</small>`:""}</td>
+        <td>${esc(x.clinic_name||"—")}</td><td>${x.clinic_id?rolePill(x.role):"—"}</td><td>${statusPill(x.status)}</td>
+        <td><div class="acts">${x.clinic_id&&x.id!==me.user.id?`<button class="btn subtle mini" data-role="${x.id}" data-to="${x.role==="manager"?"recepcion":"manager"}">${x.role==="manager"?"Hacer recepción":"Hacer gerente"}</button>
+          <button class="btn subtle mini" data-status="${x.id}" data-to="${x.status==="disabled"?"active":"disabled"}">${x.status==="disabled"?"Activar":"Deshabilitar"}</button>
+          <button class="btn subtle mini" data-remove="${x.id}" data-name="${esc(x.display_name||x.email)}">Quitar del consultorio</button>`:""}
+          ${x.id!==me.user.id?`<button class="btn danger mini" data-udel="${x.id}" data-name="${esc(x.email)}">Eliminar cuenta</button>`:""}</div></td></tr>`).join("")||'<tr><td colspan="5" class="sd">Sin resultados.</td></tr>'}
+    </tbody></table></div>`;
+    u.querySelectorAll("[data-role]").forEach(b=>b.onclick=()=>memberAction("set_member_role",{p_uid:b.dataset.role,p_role:b.dataset.to},"Rol actualizado",load));
+    u.querySelectorAll("[data-status]").forEach(b=>b.onclick=()=>memberAction("set_member_status",{p_uid:b.dataset.status,p_status:b.dataset.to},"Estado actualizado",load));
+    u.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{if(confirm(`¿Quitar a ${b.dataset.name} de su consultorio?`))memberAction("remove_member",{p_uid:b.dataset.remove},"Quitado del consultorio",load);});
+    u.querySelectorAll("[data-udel]").forEach(b=>b.onclick=()=>{if(prompt(`Se borrará la cuenta ${b.dataset.name}. Escribe ELIMINAR para confirmar:`)==="ELIMINAR")memberAction("admin_delete_user",{p_uid:b.dataset.udel},"Cuenta eliminada",load);});
+  };
+  $("#adm-go").onclick=()=>{adminSearch=$("#adm-q").value.trim();load();};
+  $("#adm-q").onkeydown=e=>{if(e.key==="Enter"){adminSearch=$("#adm-q").value.trim();load();}};
+  await load();
+}
+function adminNewClinic(){
+  const host=$("#adm-panel");
+  host.innerHTML=`<div class="set-block" style="max-width:560px"><h3>Crear consultorio para un cliente</h3><p class="sd">Se crea el consultorio y un código de <b>gerente</b> para entregarle al médico. Al usarlo en «Únete con un código» queda como gerente de su consultorio.</p>
+    <div class="add-cat"><input id="adm-cname" placeholder="Nombre del consultorio"><button class="btn solid" id="adm-create">Crear</button></div><div id="adm-newcode" style="margin-top:14px"></div></div>`;
+  $("#adm-create").onclick=async()=>{const name=$("#adm-cname").value.trim();if(!name){toast("Escribe el nombre",true);return;}
+    const {data,error}=await sb.rpc("admin_create_clinic",{p_name:name});if(error){toast(rpcMissing(error)?"Requiere aplicar la migración 0006 en Supabase.":errText(error),true);return;}
+    showCodeBox($("#adm-newcode"),data.invite_code,"manager",name);$("#adm-cname").value="";};
+}
+
+// Before 0006: the old read-only team list.
+async function setPersonalLegacy(){
   const {data:team}=await sb.from("profiles").select("display_name,role").eq("clinic_id",me.clinicId);
   const {data:codes}=await sb.from("invites").select("code,role,used_at,created_at").is("used_at",null).gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false});
   $("#set-panel").innerHTML=`
@@ -1102,7 +1366,7 @@ async function setPersonal(){
   $("#gen-code").onclick=async()=>{
     const {data,error}=await sb.rpc("create_invite",{p_role:"recepcion"});
     if(error){toast("Error: "+error.message,true);return;}
-    await setPersonal();
+    await setPersonalLegacy();
     const shown=String(data).replace(/(.{4})(?=.)/g,"$1-");
     $("#code-out").innerHTML=`<div class="warn" style="background:rgba(18,164,124,.08);border-color:rgba(18,164,124,.3);color:var(--emerald-deep)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg><div>Código: <b style="font-family:var(--display);letter-spacing:.15em;font-size:16px">${esc(shown)}</b> — compártelo con tu recepción. Válido una vez, vence en 48 horas.</div></div>`;
   };
@@ -1118,7 +1382,16 @@ async function exportCSV(){
 
 /* ---- BOOT ---- */
 (async()=>{
-  if(new URLSearchParams(location.search).get("inactivo")){const m=$("#login-msg");m.className="lmsg";m.textContent="Tu sesión se cerró por inactividad. Vuelve a entrar.";history.replaceState(null,"",location.pathname);}
+  const qs=new URLSearchParams(location.search),hs=new URLSearchParams(location.hash.replace(/^#/,""));
+  if(qs.get("inactivo")){const m=$("#login-msg");m.className="lmsg";m.textContent="Tu sesión se cerró por inactividad. Vuelve a entrar.";history.replaceState(null,"",location.pathname);}
+  // Supabase sends failed email links back with error_code (e.g. otp_expired) in the URL.
+  const ecode=qs.get("error_code")||hs.get("error_code");
+  if(ecode){
+    const m=$("#login-msg");m.className="lmsg err";
+    m.textContent=ecode==="otp_expired"?"El enlace venció o ya se usó. Si era de confirmación, pide uno nuevo abajo; si era de contraseña, solicita otro.":"No se pudo completar: "+((qs.get("error_description")||hs.get("error_description")||ecode).replace(/\+/g," "));
+    history.replaceState(null,"",location.pathname);
+    if(ecode==="otp_expired"){const a=document.createElement("a");a.textContent="Reenviar correo de confirmación";a.style.cursor="pointer";a.onclick=()=>showConfirm("","");m.appendChild(document.createElement("br"));m.appendChild(a);}
+  }
   const {data:{session}}=await sb.auth.getSession();
   if(session&&recovering){showLoginView("newpass");return;}
   if(session)await initApp();
