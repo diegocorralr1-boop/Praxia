@@ -32,11 +32,23 @@ Praxia replaces that with a revenue ledger built for the front desk: fast charge
 - `0003_split_payments.sql` — per-line payment method, supporting split MXN/USD payments
 - `0004_security_fixes.sql` — locks roles and invites, server-side entry saves, audit log, per-line currency, frozen exchange rate per entry
 - `0005_privacy_compliance.sql` — consent record, privacy log, patient anonymization, clinic/account deletion, personal-data export (LFPDPPP)
+- `0006_accounts.sql` — account lifecycle (server finishes the sign-up when the email is confirmed), account events, member management, platform admins
 - `privacidad.html`, `terminos.html`, `aviso-pacientes.html` — legal pages (Spanish); `legal-config.js` holds the legal entity's details and the current terms version
 - `fonts/` — self-hosted fonts (no third-party font requests); `netlify.toml` — security headers (CSP, HSTS)
 - `docs/PLAN-LEGAL-MX.md` — the 15-point legal, privacy and security plan for Mexico; `docs/RESPUESTA-A-INCIDENTES.md` — breach response procedure
 
-Run the `.sql` files in order (0001 → 0005) in Supabase Studio → SQL Editor.
+Run the `.sql` files in order (0001 → 0006) in Supabase Studio → SQL Editor.
+
+## Accounts, roles and admins
+
+- **Sign-up** stores the clinic name (or invite code) in the user's metadata; when the email is confirmed, a database trigger creates the clinic / redeems the invite. The app only shows the state and offers to retry (`docs/PLAN-CUENTAS.md`).
+- **Roles inside a clinic:** `manager` (full access, Ajustes → Personal to invite, remove, change roles, disable) and `recepcion` (what the manager allows). The clinic's **owner** (founding manager) can only be changed by a platform admin.
+- **Platform admins** (the people who run Praxia) see every clinic and user, can create a clinic plus a manager invite code for a client, suspend/delete clinics and disable/delete users (nav → Administración). They do **not** get the clinics' patient or revenue data. Add an admin by running, in the SQL Editor, with the email that person signs in with:
+  ```sql
+  insert into public.platform_admins (email) values ('persona@correo.mx');
+  ```
+  The row links to their account the next time they sign in. Remove with `delete from public.platform_admins where email = '…'`.
+- **Email must work for sign-up to work.** Supabase's built-in mailer only delivers to the project team's addresses (2/hour). Configure a custom SMTP provider, the Site URL and Redirect URLs, and set *Email OTP expiration* to 86400 (Authentication settings). Details in `docs/PLAN-CUENTAS.md`, fase 0.
 
 ## Legal & privacy (Mexico)
 
