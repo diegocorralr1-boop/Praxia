@@ -79,18 +79,6 @@
 <footer class="lfoot"><a href="index.html">Volver a Praxia</a> · <a href="privacidad.html">Aviso de privacidad de Praxia</a> · <a href="terminos.html">Términos</a></footer>
 <script src="legal-config.js"></script>
 <script src="legal.js"></script>
-<script>
-// Pre-fill clinic/doctor from the query string (set by the app), always as text.
-(function(){
-  var q=new URLSearchParams(location.search);
-  var c=(q.get("consultorio")||"").trim().slice(0,120), r=(q.get("responsable")||"").trim().slice(0,120);
-  if(c)document.getElementById("f-consultorio").textContent=c;
-  if(r)document.getElementById("f-responsable").textContent=r;
-  function sync(){var v=document.getElementById("f-consultorio").textContent.trim();document.getElementById("s-consultorio").textContent=v||"[Nombre del consultorio]";}
-  document.getElementById("f-consultorio").addEventListener("input",sync);sync();
-  document.getElementById("print").onclick=function(){window.print();};
-  document.getElementById("clear").onclick=function(){document.querySelectorAll(".fill").forEach(function(e){e.textContent="";});sync();};
-})();
-</script>
+<script src="aviso-pacientes.js"></script>
 </body>
 </html>

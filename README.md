@@ -24,20 +24,32 @@ Praxia replaces that with a revenue ledger built for the front desk: fast charge
 - **Multi-tenant:** each practice's data is isolated through row-level security
 - **Deployment:** Netlify (static hosting)
 
+## Developer workflow
+
+```bash
+npm install          # dev tools (the app itself has no dependencies or build step)
+npm run serve        # http://localhost:8888
+npm run check        # lint + HTML sanity + SQL tests (needs Postgres, see CONTRIBUTING.md) + browser tests
+```
+
+CI runs the same checks on every push and pull request (`.github/workflows/ci.yml`). See `CONTRIBUTING.md` for the workflow and `docs/ARCHITECTURE.md` for how the system fits together. `docs/ROADMAP-ROBUSTEZ.md` is the engineering roadmap.
+
 ## Repository contents
 
-- `index.html` — the full application (front end)
+- `index.html`, `app.js`, `app.css` — the application (markup, logic, styles); `config.js` — environment (production/development) and app version
 - `0001_init.sql` — database schema (clinics, patients, entries, line items, settings) and row-level-security policies
 - `0002_invites.sql` — invite-code system for adding reception staff to a practice
 - `0003_split_payments.sql` — per-line payment method, supporting split MXN/USD payments
 - `0004_security_fixes.sql` — locks roles and invites, server-side entry saves, audit log, per-line currency, frozen exchange rate per entry
 - `0005_privacy_compliance.sql` — consent record, privacy log, patient anonymization, clinic/account deletion, personal-data export (LFPDPPP)
 - `0006_accounts.sql` — account lifecycle (server finishes the sign-up when the email is confirmed), account events, member management, platform admins
+- `0007_observability.sql` — client error reports (Administración → Errores)
+- `tests/` — SQL scenario tests and Playwright browser tests; `scripts/` — test runner, HTML checks, `db/apply.sh`, `db/backup.sh`
 - `privacidad.html`, `terminos.html`, `aviso-pacientes.html` — legal pages (Spanish); `legal-config.js` holds the legal entity's details and the current terms version
 - `fonts/` — self-hosted fonts (no third-party font requests); `netlify.toml` — security headers (CSP, HSTS)
 - `docs/PLAN-LEGAL-MX.md` — the 15-point legal, privacy and security plan for Mexico; `docs/RESPUESTA-A-INCIDENTES.md` — breach response procedure
 
-Run the `.sql` files in order (0001 → 0006) in Supabase Studio → SQL Editor.
+Run the `.sql` files in order (0001 → 0007) in Supabase Studio → SQL Editor, or `scripts/db/apply.sh "<DATABASE_URL>" <first-pending-number>`.
 
 ## Accounts, roles and admins
 
