@@ -6,12 +6,12 @@
 # Security headers for every response.
 # CSP: scripts only from this site and the pinned supabase-js on jsDelivr (SRI-checked in index.html);
 # API calls only to our Supabase project; no framing by other sites; no plugins.
-# 'unsafe-inline' is needed because the app's script and styles live inside index.html.
-# Moving the <script> to its own .js file would allow dropping it from script-src.
+# Scripts live in their own files (app.js, legal.js, config.js), so no inline script is allowed;
+# style-src keeps 'unsafe-inline' for the style="" attributes in the markup.
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://yqsgeywhilqrsombekce.supabase.co wss://yqsgeywhilqrsombekce.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://yqsgeywhilqrsombekce.supabase.co wss://yqsgeywhilqrsombekce.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"

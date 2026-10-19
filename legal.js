@@ -5,7 +5,7 @@
     var v=L[el.getAttribute("data-legal")];
     if(v==null||v==="")return;
     if(/^https?:\/\//.test(String(v))&&el.tagName!=="A"){var a=document.createElement("a");a.href=v;a.textContent=v;a.rel="noopener";el.textContent="";el.appendChild(a);}
-    else if(/^[^\s@\[]+@[^\s@]+\.[^\s@]+$/.test(String(v))){var m=document.createElement("a");m.href="mailto:"+v;m.textContent=v;el.textContent="";el.appendChild(m);}
+    else if(/^[^\s@[]+@[^\s@]+\.[^\s@]+$/.test(String(v))){var m=document.createElement("a");m.href="mailto:"+v;m.textContent=v;el.textContent="";el.appendChild(m);}
     else el.textContent=v;
   });
   var tb=document.querySelector("#tabla-encargados tbody");
