@@ -35,4 +35,11 @@ Local Postgres without installing anything: `docker run --rm -e POSTGRES_PASSWOR
 - All authorization lives in Postgres (RLS + `SECURITY DEFINER` functions). Never gate data access only in the UI.
 - Never commit the Supabase `service_role` key, database passwords or `.env` files. The publishable key is fine.
 - Legal texts: changing them means bumping `version` in `legal-config.js`, which makes every user re-accept.
+- Bumping `@supabase/supabase-js` (Dependabot opens the PR): the version in `package.json`, the CDN pin in `index.html` and its `integrity` hash must change together, or the browser refuses the script. After `npm install`, compute the hash from the same file jsDelivr serves and paste it into `index.html`:
+
+  ```sh
+  echo "sha384-$(openssl dgst -sha384 -binary node_modules/@supabase/supabase-js/dist/umd/supabase.js | base64 -w0)"
+  ```
+
+  Then run `npm run check`; the browser tests load that same file, so they prove the new version works with the app.
 - Spanish in the UI and legal documents; English in code comments, commit messages and engineering docs.
