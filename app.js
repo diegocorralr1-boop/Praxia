@@ -37,6 +37,8 @@ let settingsTab="preferencias";
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// Options for a <select>: keeps the value already saved on an entry even if the category was deleted later.
+const withVal=(arr,val)=>val&&!arr.includes(val)?[val,...arr]:arr;
 const fmtMXN=n=>"$"+Math.round(n).toLocaleString("es-MX");
 const initials=n=>(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
 const parseDate=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
@@ -87,6 +89,9 @@ function errText(e){
   for(const [re,t] of T)if(re.test(m))return t;
   return m;
 }
+// Enter in any field of a lock-screen form presses that form's button.
+[["#v-login","#btn-login"],["#v-signup","#btn-signup"],["#v-join","#btn-join"],["#v-reset","#btn-reset"],["#v-newpass","#btn-newpass"],["#v-confirm","#btn-resend"]]
+  .forEach(([v,b])=>$(v).addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.tagName==="INPUT"&&e.target.type!=="checkbox"){e.preventDefault();$(b).click();}}));
 $("#go-join").onclick=()=>showLoginView("join");
 $("#go-login2").onclick=()=>showLoginView("login");
 // Live check of an invite code (check_invite is callable before signing in). Returns null when 0006 isn't applied.
@@ -330,16 +335,22 @@ function startAdminOnly(st){
 }
 
 async function seedCatsIfEmpty(){
-  const {count}=await sb.from("categories").select("*",{count:"exact",head:true}).eq("clinic_id",me.clinicId);
-  if(count&&count>0)return;
+  const {count,error}=await sb.from("categories").select("*",{count:"exact",head:true}).eq("clinic_id",me.clinicId);
+  if(error||count!==0)return;   // only seed a clinic that really has none; never on a failed count
   const rows=[];
   for(const kind in DEFAULT_CATS) DEFAULT_CATS[kind].forEach((label,i)=>rows.push({clinic_id:me.clinicId,kind,label,sort_order:i}));
-  await sb.from("categories").insert(rows);
+  const {error:e2}=await sb.from("categories").insert(rows);
+  if(e2)console.warn("No se pudieron crear las categorías iniciales:",e2.message);
 }
+// The entry form's dropdowns come from here. A failed read (missing column before 0004, RLS, network)
+// must never leave them empty: fall back to the defaults for the required kinds and say so.
 async function loadCats(){
-  const {data}=await sb.from("categories").select("kind,label,currency").eq("clinic_id",me.clinicId).eq("active",true).order("sort_order");
-  cats={concepto:[],modificador:[],estatus:[],metodo:[],tipo_tarjeta:[],cur:{}};
-  (data||[]).forEach(r=>{if(cats[r.kind])cats[r.kind].push(r.label);if(r.kind==="metodo")cats.cur[r.label]=r.currency;});
+  let {data,error}=await sb.from("categories").select("kind,label,currency").eq("clinic_id",me.clinicId).eq("active",true).order("sort_order");
+  if(error&&error.code==="42703")({data,error}=await sb.from("categories").select("kind,label").eq("clinic_id",me.clinicId).eq("active",true).order("sort_order"));
+  cats={concepto:[],modificador:[],estatus:[],metodo:[],tipo_tarjeta:[],cur:{},fallback:[],loadError:error?error.message:null};
+  (data||[]).forEach(r=>{if(cats[r.kind])cats[r.kind].push(r.label);if(r.kind==="metodo"&&r.currency)cats.cur[r.label]=r.currency;});
+  ["concepto","estatus","metodo"].forEach(k=>{if(!cats[k].length){cats[k]=DEFAULT_CATS[k].slice();cats.fallback.push(k);}});
+  if(error)toast("No se pudieron cargar las categorías ("+errText(error)+"). Se usan las predeterminadas.",true);
 }
 
 /* ---- ROUTER ---- */
@@ -377,7 +388,7 @@ async function renderEntries(){
     $("#content").innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6M9 13h6M9 17h3" stroke-linecap="round"/></svg><b>Sin entradas todavía</b>Crea la primera con “Nueva entrada”.</div>`;return;
   }
   const byDay={};entriesCache.forEach(e=>{(byDay[e.entry_date]=byDay[e.entry_date]||[]).push(e);});
-  let html="";
+  let html=fullHistory()?"":`<p class="note">Se muestran los últimos 7 días. Tu gerente puede ampliar el historial en Ajustes → Preferencias.</p>`;
   Object.keys(byDay).sort().reverse().forEach(d=>{
     const es=byDay[d],dt=parseDate(d),tot=es.reduce((s,e)=>s+entryMXN(e),0);
     const pac=new Set(es.map(e=>(e.patients&&e.patients.name||"").toLowerCase())).size;
@@ -489,11 +500,11 @@ function openSheet(entry){
   const opt=(arr,val)=>arr.map(o=>`<option ${o===val?"selected":""}>${esc(o)}</option>`).join("");
   $("#sheet-body").innerHTML=`
     <div class="frow two">
-      <div><label>Paciente</label><input id="i-pac" placeholder="Nombre del paciente" autocomplete="off" value="${esc(pname)}"></div>
+      <div><label>Paciente</label><input id="i-pac" list="pac-list" placeholder="Nombre del paciente" autocomplete="off" value="${esc(pname)}"><datalist id="pac-list"></datalist></div>
       <div><label>Teléfono</label><input id="i-tel" type="tel" placeholder="Opcional · distingue homónimos" autocomplete="off" value="${esc(pphone)}"></div></div>
     <div class="frow two">
       <div><label>Fecha</label><input id="i-fecha" type="date" value="${entry?entry.entry_date:todayISO()}"></div>
-      <div><label>Estatus de pago</label><select id="i-estatus">${opt(cats.estatus,entry?entry.status:cats.estatus[0])}</select></div></div>
+      <div><label>Estatus de pago</label><select id="i-estatus">${opt(withVal(cats.estatus,entry&&entry.status),entry?entry.status:cats.estatus[0])}</select></div></div>
     <div class="frow">
       <div class="svc-head"><label>Cobros</label><button class="svc-add" id="svc-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>Agregar línea</button></div>
       <div id="svc-rows"></div>
@@ -503,20 +514,29 @@ function openSheet(entry){
       <div><label>N° Factura</label><input id="i-fact" placeholder="Opcional" value="${esc(entry?(entry.invoice_no||""):"")}"></div><div></div></div>
     <div class="frow"><label>Notas</label><textarea id="i-notas" placeholder="Notas administrativas · no registres diagnósticos ni datos clínicos">${esc(entry?(entry.notes||""):"")}</textarea></div>`;
   renderSvc();
+  fillPatientList();
+  // Picking an existing patient from the suggestions fills in the phone that tells homonyms apart.
+  $("#i-pac").addEventListener("change",()=>{const n=$("#i-pac").value.trim().toLowerCase();const hits=(patientsCache||[]).filter(p=>(p.name||"").toLowerCase()===n);if(hits.length===1&&hits[0].phone&&!$("#i-tel").value)$("#i-tel").value=hits[0].phone;});
   $("#svc-add").onclick=()=>{syncSvc();lines.push({conceptos:[cats.concepto[0]||""],modificador:"",monto:"",metodo:defM});renderSvc();};
   $("#scrim").classList.add("open");$("#sheet").classList.add("open");
   setTimeout(()=>$("#i-pac").focus(),120);
 }
+let patientsCache=null;
+async function fillPatientList(){
+  if(!patientsCache){const {data}=await fetchAll(()=>sb.from("patients").select("id,name,phone").order("id"));patientsCache=data||[];}
+  const dl=$("#pac-list");if(!dl)return;
+  dl.innerHTML=patientsCache.filter(p=>p.name&&!/^Paciente eliminado /.test(p.name)).map(p=>`<option value="${esc(p.name)}">${p.phone?esc(p.phone):""}</option>`).join("");
+}
 function svcRow(it,i){
   const opt=(arr,val)=>arr.map(o=>`<option ${o===val?"selected":""}>${esc(o)}</option>`).join("");
-  const cc=it.conceptos.map((c,ci)=>`<div class="cc-row"><select class="cc" style="flex:1">${opt(cats.concepto,c)}</select>${it.conceptos.length>1?`<button class="cc-del" data-i="${i}" data-ci="${ci}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>`:""}</div>`).join("");
+  const cc=it.conceptos.map((c,ci)=>`<div class="cc-row"><select class="cc" style="flex:1">${opt(withVal(cats.concepto,c),c)}</select>${it.conceptos.length>1?`<button class="cc-del" data-i="${i}" data-ci="${ci}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>`:""}</div>`).join("");
   return `<div class="svc-row">
     <div class="svc-l1">
       <div style="grid-column:1 / 3">${cc}<button class="cc-add" data-i="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>concepto</button></div>
       <button class="svc-del" data-i="${i}" ${lines.length<=1?'style="visibility:hidden"':""}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div>
-    <div class="svc-l2" style="grid-template-columns:1fr 1fr 1fr;margin-top:6px">
-      <select class="sm"><option value="">— mod —</option>${opt(cats.modificador,it.modificador)}</select>
-      <select class="smethod">${opt(cats.metodo,it.metodo)}</select>
+    <div class="svc-l2">
+      <select class="sm"><option value="">— mod —</option>${opt(withVal(cats.modificador,it.modificador),it.modificador)}</select>
+      <select class="smethod">${opt(withVal(cats.metodo,it.metodo),it.metodo)}</select>
       <input class="sa" type="number" min="0" step="any" placeholder="Monto" value="${it.monto===""||it.monto==null?"":it.monto}"></div></div>`;
 }
 function renderSvc(){
@@ -555,7 +575,7 @@ $("#sheet-save").onclick=async()=>{
       if(/outside window/.test(se.message))throw new Error("Solo puedes registrar o editar entradas de los últimos 7 días.");
       throw se;
     }
-    closeSheet();toast(editId?"Entrada actualizada":"Entrada guardada");
+    closeSheet();toast(editId?"Entrada actualizada":"Entrada guardada");patientsCache=null;
     curView==="calendar"?renderCalendar():renderEntries();
   }catch(err){toast("Error: "+(err.message||err),true);}
   finally{save.disabled=false;save.textContent="Guardar entrada";}
@@ -603,12 +623,13 @@ function donut(methods,colors,total){
 }
 
 /* ---- CRM (Pacientes) ---- */
-let crmView="grid", crmRows=[];
+let crmView="grid", crmRows=[], crmQ="";
+const normTxt=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 function fmtShort(iso){if(!iso)return"—";const d=parseDate(iso);return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)}`;}
 async function renderCRM(){
   $("#content").innerHTML=`<div class="loading">Cargando pacientes...</div>`;
   const [{data:pats,error:perr},{data:ents}]=await Promise.all([
-    fetchAll(()=>sb.from("patients").select("id,name,created_at").order("id")),
+    fetchAll(()=>sb.from("patients").select("id,name,phone,created_at").order("id")),
     fetchAll(()=>sb.from("entries").select("id,patient_id,entry_date,method,fx_rate,entry_items(concepto,amount,method,currency)").order("id"))
   ]);
   if(perr){$("#content").innerHTML=`<div class="empty"><b>Error</b>${esc(perr.message)}</div>`;return;}
@@ -620,34 +641,41 @@ async function renderCRM(){
     if(!a.last||e.entry_date>a.last)a.last=e.entry_date;
   });
   crmRows=(pats||[]).map(p=>{const a=agg[p.id]||{visits:new Set(),total:0,concepts:new Set(),last:null};
-    return {id:p.id,name:p.name,visits:a.visits.size,total:a.total,concepts:[...a.concepts],last:a.last,nuevo:a.visits.size<=1};
+    return {id:p.id,name:p.name,phone:p.phone||"",visits:a.visits.size,total:a.total,concepts:[...a.concepts],last:a.last,nuevo:a.visits.size<=1};
   }).sort((x,y)=>(y.last||"").localeCompare(x.last||""));
   drawCRM();
 }
 function drawCRM(){
   if(!crmRows.length){$("#content").innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0" stroke-linecap="round"/></svg><b>Sin pacientes</b>Se agregan solos al registrar entradas.</div>`;return;}
-  const toolbar=`<div class="crm-toolbar"><div class="view-toggle" id="crm-toggle">
+  $("#content").innerHTML=`<div class="crm-toolbar"><input id="crm-q" class="crm-search" placeholder="Buscar por nombre o teléfono" autocomplete="off" value="${esc(crmQ)}"><div class="view-toggle" id="crm-toggle">
     <button data-v="grid" class="${crmView==="grid"?"on":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>
-    <button data-v="list" class="${crmView==="list"?"on":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg></button></div></div>`;
+    <button data-v="list" class="${crmView==="list"?"on":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg></button></div></div><div id="crm-body"></div>`;
+  $("#crm-toggle").querySelectorAll("button").forEach(b=>b.onclick=()=>{crmView=b.dataset.v;$("#crm-toggle").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));drawCRMBody();});
+  $("#crm-q").oninput=()=>{crmQ=$("#crm-q").value;drawCRMBody();};
+  drawCRMBody();
+}
+function drawCRMBody(){
+  const q=normTxt(crmQ.trim()),rows=q?crmRows.filter(r=>normTxt(r.name).includes(q)||r.phone.replace(/\D/g,"").includes(q.replace(/\D/g,"")||"\u0000")):crmRows;
+  const host=$("#crm-body");
+  if(!rows.length){host.innerHTML=`<div class="empty" style="padding:40px"><b>Sin resultados</b>Ningún paciente coincide con «${esc(crmQ)}».</div>`;return;}
   let body;
   if(crmView==="grid"){
-    body=`<div class="crm-grid">${crmRows.map(r=>`<div class="pcard" data-p="${r.id}">
-      <div class="ph"><div class="pava-lg">${esc(initials(r.name))}</div><div><b>${esc(r.name)} ${r.nuevo?'<span class="badge-new">NUEVO</span>':""}</b><small>${r.last?"Última: "+fmtShort(r.last):"—"}</small></div></div>
+    body=`<div class="crm-grid">${rows.map(r=>`<div class="pcard" data-p="${r.id}">
+      <div class="ph"><div class="pava-lg">${esc(initials(r.name))}</div><div><b>${esc(r.name)} ${r.nuevo?'<span class="badge-new">NUEVO</span>':""}</b><small>${r.phone?esc(r.phone)+" · ":""}${r.last?"Última: "+fmtShort(r.last):"Sin visitas"}</small></div></div>
       <div class="pmeta"><div><div class="k">Visitas</div><div class="v">${r.visits}</div></div><div><div class="k">Total</div><div class="v">${fmtMXN(r.total)}</div></div></div>
       <div class="ptags">${r.concepts.slice(0,4).map(c=>`<span class="tag concept">${esc(c)}</span>`).join("")}${r.concepts.length>4?`<span class="tag mod">+${r.concepts.length-4}</span>`:""}</div></div>`).join("")}</div>`;
   }else{
     body=`<div class="crm-list"><div class="cl-row head"><div>Paciente</div><div>Visitas</div><div>Total</div><div>Última</div><div>Servicios</div></div>
-      ${crmRows.map(r=>`<div class="cl-row" data-p="${r.id}"><div class="cl-name"><span class="pava">${esc(initials(r.name))}</span>${esc(r.name)} ${r.nuevo?'<span class="badge-new">NUEVO</span>':""}</div>
+      ${rows.map(r=>`<div class="cl-row" data-p="${r.id}"><div class="cl-name"><span class="pava">${esc(initials(r.name))}</span><span>${esc(r.name)} ${r.nuevo?'<span class="badge-new">NUEVO</span>':""}${r.phone?`<small>${esc(r.phone)}</small>`:""}</span></div>
       <div class="cl-v">${r.visits}</div><div class="cl-v">${fmtMXN(r.total)}</div><div style="color:var(--muted)">${fmtShort(r.last)}</div>
       <div class="cl-tags">${r.concepts.slice(0,3).map(c=>`<span class="tag concept">${esc(c)}</span>`).join("")}${r.concepts.length>3?`<span class="tag mod">+${r.concepts.length-3}</span>`:""}</div></div>`).join("")}</div>`;
   }
-  $("#content").innerHTML=toolbar+body;
-  $("#crm-toggle").querySelectorAll("button").forEach(b=>b.onclick=()=>{crmView=b.dataset.v;drawCRM();});
-  $("#content").querySelectorAll("[data-p]").forEach(el=>el.onclick=()=>openPatient(el.dataset.p));
+  host.innerHTML=body;
+  host.querySelectorAll("[data-p]").forEach(el=>el.onclick=()=>openPatient(el.dataset.p));
 }
 async function openPatient(id){
   const r=crmRows.find(x=>x.id===id);if(!r)return;
-  $("#pt-head").innerHTML=`<div class="pava-lg">${esc(initials(r.name))}</div><div><h3>${esc(r.name)}</h3><small>${r.last?"Última visita "+fmtShort(r.last):"Sin visitas"}</small></div>
+  $("#pt-head").innerHTML=`<div class="pava-lg">${esc(initials(r.name))}</div><div><h3>${esc(r.name)}</h3><small>${r.phone?esc(r.phone)+" · ":""}${r.last?"Última visita "+fmtShort(r.last):"Sin visitas"}</small></div>
     <div class="pt-stats"><div class="s"><b>${r.visits}</b><small>visitas</small></div><div class="s"><b>${fmtMXN(r.total)}</b><small>total</small></div></div>
     ${can("deleteEntries")&&!/^Paciente eliminado /.test(r.name)?`<button class="btn subtle" id="pt-anon" style="margin-left:6px;font-size:12.5px;padding:8px 12px" title="Borra nombre y contacto; conserva los cobros de forma anónima">Anonimizar</button>`:""}
     <button class="svc-del" id="pt-close" style="width:34px;height:34px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>`;
@@ -756,8 +784,25 @@ function setGeneral(){
         <button class="btn" id="s-logout" style="background:#fff;border:1px solid #F0D2D8;color:var(--rose)">Cerrar sesión</button></div></div>
     <div class="set-block"><h3>Privacidad y datos</h3>
       <p class="sd" style="line-height:1.6">La información se guarda con acceso por usuario y consultorio; ningún otro consultorio puede verla. La sesión se cierra sola tras 30 minutos sin actividad. Documentos legales, descarga de tus datos y eliminación de cuenta: pestaña <b>Privacidad</b>.</p></div>
+    <div class="set-block"><h3>Estado del sistema</h3><p class="sd">Qué tiene aplicado la base de datos. Si algo marca «falta», ejecuta ese archivo en Supabase → SQL Editor, en orden.</p><div id="sys-diag"><div class="loading" style="padding:18px">Comprobando...</div></div></div>
     <div class="set-block"><h3>Acerca de</h3><p class="sd">Praxia · Registro · versión ${esc(APP_VERSION)} · entorno ${esc(CFG.env||"production")}</p></div>`;
   $("#s-logout").onclick=async()=>{if(confirm("¿Cerrar sesión?")){await sb.auth.signOut();location.reload();}};
+  loadDiag();
+}
+// Probes one object per migration; "missing" errors (no such column/table/function) mean it was never applied.
+async function loadDiag(){
+  const host=$("#sys-diag");if(!host)return;
+  const missing=e=>!!e&&(e.code==="42703"||e.code==="42P01"||e.code==="PGRST202"||e.code==="42883");
+  const probes=[
+    ["0004_security_fixes.sql","Cobros por línea, historial de cambios y tipo de cambio congelado",async()=>!missing((await sb.from("categories").select("currency").limit(1)).error)],
+    ["0005_privacy_compliance.sql","Consentimiento, anonimización y descarga de datos",async()=>!missing((await sb.from("privacy_log").select("id",{count:"exact",head:true})).error)],
+    ["0006_accounts.sql","Altas de cuenta, equipo e invitaciones",async()=>!missing((await sb.rpc("check_invite",{p_code:"0000000000000000"})).error)],
+    ["0007_observability.sql","Reporte de errores a Praxia",async()=>!missing((await sb.from("client_errors").select("id",{count:"exact",head:true})).error)]];
+  const rows=[];for(const [f,what,fn] of probes){let ok;try{ok=await fn();}catch(_){ok=false;}rows.push([f,what,ok]);}
+  const catsInfo=`${cats.concepto.length} conceptos · ${cats.modificador.length} modificadores · ${cats.metodo.length} métodos · ${cats.estatus.length} estatus`+(cats.fallback&&cats.fallback.length?" · predeterminados (no se pudieron leer de la base: "+esc(cats.loadError||"")+")":"");
+  if(!$("#sys-diag"))return;
+  host.innerHTML=`<div class="set-row"><div class="srl"><b>Categorías del formulario</b><small>${catsInfo}</small></div><span class="pill ${cats.fallback&&cats.fallback.length?"warn":"ok"}">${cats.fallback&&cats.fallback.length?"revisar":"ok"}</span></div>`
+    +rows.map(([f,what,ok])=>`<div class="set-row"><div class="srl"><b>${esc(f)}</b><small>${esc(what)}</small></div><span class="pill ${ok?"ok":"off"}">${ok?"aplicada":"falta"}</span></div>`).join("");
 }
 /* ---- PRIVACY (ARCO) ---- */
 function setPrivacidad(){

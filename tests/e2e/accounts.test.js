@@ -87,8 +87,10 @@ const R = {};
     R.A_admin_nav_hidden = await page.evaluate(() => getComputedStyle(document.querySelector('#nav [data-view="admin"]')).display);
     await page.click('#nav [data-view="settings"]'); await page.click('[data-st="personal"]'); await page.waitForSelector('.tbl');
     R.A_member_rows = await page.locator('.tbl tbody tr').count(); R.A_invite_code_shown = await page.locator('.tbl').nth(1).innerText().then(t => t.includes('GOOD-GOOD-GOOD-GOOD'));
-    await page.click('[data-role="u2"]'); R.A_role_rpc = JSON.stringify(st.rpc.find(r => r[0] === 'set_member_role'));
-    await page.click('[data-remove="u2"]'); R.A_remove_rpc = JSON.stringify(st.rpc.find(r => r[0] === 'remove_member')); R.A_remove_confirm = (st.dialog || '').slice(0, 30);
+    // Each action re-renders the panel after list_members answers; wait for that before touching the next control.
+    const rendered = async n => { while (st.rpc.filter(r => r[0] === 'list_members').length < n) await page.waitForTimeout(25); await page.waitForTimeout(150); };
+    await page.click('[data-role="u2"]'); R.A_role_rpc = JSON.stringify(st.rpc.find(r => r[0] === 'set_member_role')); await rendered(2);
+    await page.click('[data-remove="u2"]'); R.A_remove_rpc = JSON.stringify(st.rpc.find(r => r[0] === 'remove_member')); R.A_remove_confirm = (st.dialog || '').slice(0, 30); await rendered(3);
     await page.selectOption('#inv-role', 'manager'); await page.fill('#inv-email', 'nuevo@test.mx'); await page.click('#gen-code'); await page.waitForSelector('#code-out .warn');
     R.A_create_invite_rpc = JSON.stringify(st.rpc.find(r => r[0] === 'create_invite'));
     await page.click('[data-revoke="GOODGOODGOODGOOD"]'); R.A_revoke_rpc = JSON.stringify(st.rpc.find(r => r[0] === 'revoke_invite'));
