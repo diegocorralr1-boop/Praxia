@@ -21,8 +21,8 @@
     <div class="lbrand"><div class="mark">P</div><div><b>Praxia</b><span>Registro</span></div></div>
     <div id="v-login">
       <h2>Entrar</h2><p class="sub">Accede a tu consultorio</p>
-      <label>Correo</label><input id="li-email" type="email" placeholder="tucorreo@ejemplo.com">
-      <label>Contraseña</label><input id="li-pass" type="password" placeholder="••••••••">
+      <label>Correo</label><input id="li-email" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com">
+      <label>Contraseña</label><input id="li-pass" type="password" autocomplete="current-password" placeholder="••••••••">
       <button class="lbtn" id="btn-login">Entrar</button>
       <div class="lmsg" id="login-msg"></div>
       <p class="lswap">¿Primera vez? <a id="go-signup">Crea tu consultorio</a></p>
@@ -33,7 +33,7 @@
       <h2>Crear consultorio</h2><p class="sub">Serás el gerente</p>
       <label>Nombre del consultorio</label><input id="su-clinic" placeholder="Consultorio Dr. ...">
       <label>Tu nombre</label><input id="su-name" placeholder="Dr. ...">
-      <label>Correo</label><input id="su-email" type="email" placeholder="tucorreo@ejemplo.com">
+      <label>Correo</label><input id="su-email" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com">
       <label>Contraseña</label><input id="su-pass" type="password" placeholder="mínimo 10 caracteres" autocomplete="new-password">
       <label class="lchk"><input type="checkbox" id="su-acepto"><span>He leído el <a href="privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a> y acepto los <a href="terminos.html" target="_blank" rel="noopener">Términos del servicio</a>.</span></label>
       <button class="lbtn" id="btn-signup">Crear consultorio</button>
@@ -43,7 +43,7 @@
     <div id="v-join" class="hidden">
       <h2>Unirse con código</h2><p class="sub">Te invitó tu consultorio</p>
       <label>Tu nombre</label><input id="jo-name" placeholder="Tu nombre">
-      <label>Correo</label><input id="jo-email" type="email" placeholder="tucorreo@ejemplo.com">
+      <label>Correo</label><input id="jo-email" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com">
       <label>Contraseña</label><input id="jo-pass" type="password" placeholder="mínimo 10 caracteres" autocomplete="new-password">
       <label>Código de invitación</label><input id="jo-code" placeholder="XXXX-XXXX-XXXX-XXXX" style="text-transform:uppercase;letter-spacing:.15em">
       <label class="lchk"><input type="checkbox" id="jo-acepto"><span>He leído el <a href="privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a> y acepto los <a href="terminos.html" target="_blank" rel="noopener">Términos del servicio</a>.</span></label>
@@ -53,7 +53,7 @@
     </div>
     <div id="v-reset" class="hidden">
       <h2>Restablecer contraseña</h2><p class="sub">Te enviaremos un enlace a tu correo</p>
-      <label>Correo</label><input id="rs-email" type="email" placeholder="tucorreo@ejemplo.com">
+      <label>Correo</label><input id="rs-email" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com">
       <button class="lbtn" id="btn-reset">Enviar enlace</button>
       <div class="lmsg" id="reset-msg"></div>
       <p class="lswap">¿La recordaste? <a id="go-login3">Entrar</a></p>

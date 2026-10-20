@@ -28,6 +28,7 @@ Local Postgres without installing anything: `docker run --rm -e POSTGRES_PASSWOR
 
 - **SQL** (`tests/sql/test_*.sql`): each file runs inside one transaction against a fresh database with every migration applied and a stand-in `auth` schema. Use `tests.ok(condition, 'message')` and `tests.raises($$sql$$, 'expected error fragment', 'message')`. Switch identity with the `:login` macro (`\set who <uuid>` / `\set mail <email>`), and `reset role` afterwards. A failing assertion fails CI.
 - **Browser** (`tests/e2e/*.test.js`): drive `index.html` in Chromium with the real CSP and the real `supabase-js`, against a fake API. Add a scenario, record what the app must do, and assert on it at the end of the file.
+  `app.test.js` walks every day-to-day feature in the order of `docs/QA-CHECKLIST.md` (login, entries, calendar, patients, analytics, settings, phone layout, degraded backends, Recepción). When you add a button, add it there.
 
 ## Conventions
 

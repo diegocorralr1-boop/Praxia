@@ -32,7 +32,7 @@ npm run serve        # http://localhost:8888
 npm run check        # lint + HTML sanity + SQL tests (needs Postgres, see CONTRIBUTING.md) + browser tests
 ```
 
-CI runs the same checks on every push and pull request (`.github/workflows/ci.yml`). See `CONTRIBUTING.md` for the workflow and `docs/ARCHITECTURE.md` for how the system fits together. `docs/ROADMAP-ROBUSTEZ.md` is the engineering roadmap.
+CI runs the same checks on every push and pull request (`.github/workflows/ci.yml`). See `CONTRIBUTING.md` for the workflow and `docs/ARCHITECTURE.md` for how the system fits together. `docs/ROADMAP-ROBUSTEZ.md` is the engineering roadmap; `docs/QA-CHECKLIST.md` lists every feature in order of importance with how each one is verified.
 
 ## Repository contents
 
