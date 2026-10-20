@@ -108,9 +108,10 @@ const results = {};
     results.A_page_errors = st.errors;
     // Settings → Privacidad
     await page.click('#nav [data-view="settings"]'); await page.click('[data-st="privacidad"]');
-    results.A_privacy_rows = await page.locator('#set-panel .set-row').count();
+    // The privacy log loads asynchronously inside #set-panel; wait for it before counting so the numbers are deterministic.
     await page.waitForFunction(() => !/Cargando/.test(document.querySelector('#pv-log').textContent));
     results.A_privacy_log_lines = await page.locator('#pv-log .set-row').count();
+    results.A_privacy_rows = await page.locator('#set-panel .set-row').count() - results.A_privacy_log_lines;
     results.A_template_link = await page.getAttribute('a[href^="aviso-pacientes.html"]', 'href');
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#pv-export')]);
     results.A_export_download = dl.suggestedFilename() + ' ' + fs.readFileSync(await dl.path(), 'utf8').slice(0, 40);
