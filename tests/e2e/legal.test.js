@@ -85,7 +85,7 @@ async function openApp(browser, state, opts = {}) {
     if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) return r.fulfill({ status: 404, body: 'not found' });
     r.fulfill({ status: 200, headers: { 'content-type': MIME[path.extname(f)] || 'application/octet-stream', 'content-security-policy': CSP }, body: fs.readFileSync(f) });
   });
-  await page.route(/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.117\.2\/dist\/umd\/supabase\.js/, r => r.fulfill({ status: 200, headers: { 'content-type': 'application/javascript', 'access-control-allow-origin': '*' }, body: SBJS }));
+  await page.route(/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@[0-9.]+\/dist\/umd\/supabase\.js/, r => r.fulfill({ status: 200, headers: { 'content-type': 'application/javascript', 'access-control-allow-origin': '*' }, body: SBJS }));
   await page.route(/fonts\.(googleapis|gstatic)\.com/, r => { state.googleFonts = true; r.abort(); });
   await page.route(SB + '/**', makeApi(state));
   if (opts.session !== false) await page.addInitScript(([k, v]) => localStorage.setItem(k, v), ['sb-yqsgeywhilqrsombekce-auth-token', JSON.stringify(SESSION)]);
