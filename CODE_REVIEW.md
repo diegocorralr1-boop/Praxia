@@ -2,7 +2,9 @@
 
 _Review date: 17 Oct 2026 · Reviewed: `main` at commit `99276c0` (`index (15).html`, `0001`–`0003` SQL) plus the GitHub / Netlify / Supabase setup._
 
-> **Status: proposed fixes, not applied.** This file is the only change on its branch, so it can't conflict with bug fixes already in progress. Every proposed change is written out in full in the appendices, and each was tested (see [How this was verified](#5-how-this-was-verified)).
+> **Status (20 Oct 2026): historical.** This review describes `main` as it was on 17 Oct 2026. Since then the database fixes in Appendix B were applied by `0004_security_fixes.sql`, the front-end fixes landed in `app.js`, and the setup items in §2–§3 are tracked in `README.md`, `docs/PLAN-LEGAL-MX.md`, `docs/PLAN-CUENTAS.md` and `docs/ROADMAP-ROBUSTEZ.md`. It is kept for the record; use those files for current state.
+>
+> _Original note:_ **proposed fixes, not applied.** This file is the only change on its branch, so it can't conflict with bug fixes already in progress. Every proposed change is written out in full in the appendices, and each was tested (see [How this was verified](#5-how-this-was-verified)).
 
 **How to use this file**
 
